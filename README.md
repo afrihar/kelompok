@@ -67,8 +67,8 @@ As `Keycloak` supports [`PKCE`](https://tools.ietf.org/html/rfc7636) (`Proof Key
     - Client: `kelompok-dasawisma`
     - Client Roles: `PUSDATIN` and `KELURAHAN`
     - Two users
-      - `rangga`: with roles `PUSDATIN` and `KELURAHAN`
-      - `kel.ancol`: only with role `USER`
+      - `rangga`: with roles `PUSDATIN`
+      - `kel.ancol`: only with role `KELURAHAN`
 
   - **Social Identity Providers** like `Google`, `Facebook`, `Twitter`, `GitHub`, etc can be configured by following the steps described in [`Keycloak` Documentation](https://www.keycloak.org/docs/latest/server_admin/#social-identity-providers)
 
