@@ -1,4 +1,4 @@
-package id.dasawisma.kelompokapi.security;
+package id.dasawisma.kelompokapi.config;
 
 import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
@@ -53,13 +53,16 @@ public class WebSecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     http.authorizeRequests()
         .antMatchers(HttpMethod.GET, "/actuator/**").permitAll()
         .antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
-        .antMatchers("/api/userextras/me").hasAnyRole(PUSDATIN, PROVINSI, KOTA, KECAMATAN, KELURAHAN)
+        .antMatchers("/api/userextras/me").authenticated()
         .antMatchers("/api/provinsi", "/api/provinsi/**").hasRole(PUSDATIN)
         .antMatchers("/api/kota", "/api/kota/**").hasAnyRole(PUSDATIN, PROVINSI)
-        .antMatchers("/api/kecamatan", "/api/kecamatan/**").hasAnyRole(PUSDATIN, KOTA)
-        .antMatchers("/api/kelurahan", "/api/kelurahan/**").hasAnyRole(PUSDATIN, KECAMATAN)
-        .antMatchers("/api/rw", "/api/rw/**").hasAnyRole(PUSDATIN, KELURAHAN)
-        .antMatchers("/api/rt", "/api/rt/**").hasAnyRole(PUSDATIN, KELURAHAN)
+        .antMatchers("/api/kecamatan", "/api/kecamatan/**").hasAnyRole(PUSDATIN, PROVINSI, KOTA)
+        .antMatchers("/api/kelurahan", "/api/kelurahan/**").hasAnyRole(PUSDATIN, PROVINSI, KOTA, KECAMATAN)
+        .antMatchers("/api/rw", "/api/rw/**").hasAnyRole(PUSDATIN, PROVINSI, KOTA, KECAMATAN, KELURAHAN)
+        .antMatchers("/api/rt", "/api/rt/**").hasAnyRole(PUSDATIN, PROVINSI, KOTA, KECAMATAN, KELURAHAN, RW)
+        .antMatchers("/api/kader", "/api/kader/**").hasAnyRole(PUSDATIN, PROVINSI, KOTA, KECAMATAN, KELURAHAN, RW, RT)
+        .antMatchers("/api/petugas", "/api/petugas/**").hasAnyRole(PUSDATIN, PROVINSI, KOTA, KECAMATAN, KELURAHAN, RW, RT)
+        .antMatchers("/api/kelompok", "/api/kelompok/**").hasAnyRole(PUSDATIN, PROVINSI, KOTA, KECAMATAN, KELURAHAN, RW, RT)
         .anyRequest().authenticated();
     http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     http.cors().and().csrf().disable();

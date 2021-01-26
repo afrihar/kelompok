@@ -10,7 +10,6 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "userextras")
 public class UserExtra {
-
   @Id
   private String username;
   private String avatar;

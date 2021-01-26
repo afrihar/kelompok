@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 public interface MasterProvinsiRepository extends JpaRepository<MasterProvinsi, Long>, JpaSpecificationExecutor<MasterProvinsi> {
   Iterable<MasterProvinsi> findAllByOrderByNamaProvinsiAsc();
 
-  MasterProvinsi findById(long idProvinsi);
+  Iterable<MasterProvinsi> findProvinsiByKodeProvinsi(String kodeProvinsi);
 
   MasterProvinsi findByKodeProvinsi(String kodeProvinsi);
 

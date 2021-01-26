@@ -23,7 +23,7 @@ public class UserExtraController {
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
   @GetMapping("/me")
   public UserExtra getUserExtra() {
-    UserExtra userExtra = userExtraService.findUserExtraByName(PrincipalUtil.getPreferredUsername());
+    UserExtra userExtra = userExtraService.validateAndGetUserExtra(PrincipalUtil.getPreferredUsername());
     userExtra.setKodeWilayah(PrincipalUtil.getKodeWilayah());
     return userExtra;
   }

@@ -8,12 +8,12 @@ import java.util.List;
 public class Users {
   public static final List<UserKeycloak> KELOMPOK_APP_USERS = Arrays.asList(
       new UserKeycloak("rangga", "P@ssw0rd", "0", "Rangga", "Fajar"),
-      new UserKeycloak("prov.jakarta", "dppapp123!", "31", "Provinsi", "DKI Jakarta"),
-      new UserKeycloak("kota.jakarta.barat", "dppapp123!", "3174", "Kota", "Jakarta Barat"),
-      new UserKeycloak("kecamatan.palmerah", "dppapp123!", "3174030", "Kecamatan", "Palmerah"),
-      new UserKeycloak("3174030001001", "dppapp123!", "3174030001001", "RW", "001"),
-      new UserKeycloak("3174030001001001", "dppapp123!", "3174030001001001", "RT", "001"),
-      new UserKeycloak("b00151", "dppapp123!", "3174080002004006", "SULISTIAWATY", "SULISTIAWATY"),
+      new UserKeycloak("prov.jakarta", "P@ssw0rd", "31", "Provinsi", "DKI Jakarta"),
+      new UserKeycloak("kota.jakarta.barat", "P@ssw0rd", "3174", "Kota", "Jakarta Barat"),
+      new UserKeycloak("kec.palmerah", "P@ssw0rd", "3174030", "Kecamatan", "Palmerah"),
+      new UserKeycloak("3174030001001", "P@ssw0rd", "3174030001001", "RW", "001"),
+      new UserKeycloak("3174030001001001", "P@ssw0rd", "3174030001001001", "RT", "001"),
+      new UserKeycloak("b00151", "P@ssw0rd", "3174080002004006", "SULISTIAWATY", "SULISTIAWATY"),
       new UserKeycloak("kel.pulau.tidung", "pulau.tidung.923", "3101010001", "Kelurahan", "Pulau Tidung"),
       new UserKeycloak("kel.pulau.pari", "pulau.pari.927", "3101010002", "Kelurahan", "Pulau Pari"),
       new UserKeycloak("kel.pulau.untung.jawa", "pulau.untung.jawa.338", "3101010003", "Kelurahan", "Pulau Untung Jawa"),

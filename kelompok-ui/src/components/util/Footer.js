@@ -1,8 +1,8 @@
-import React, {Component} from 'react';
-import {Container, Menu} from "semantic-ui-react";
+import React, { Component } from 'react'
+import { Container, Menu } from 'semantic-ui-react'
 
 class Footer extends Component {
-  render() {
+  render () {
     return (
       <Menu fixed={'bottom'}>
         <Container>

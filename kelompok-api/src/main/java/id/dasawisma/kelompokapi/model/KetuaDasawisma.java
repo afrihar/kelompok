@@ -1,5 +1,6 @@
 package id.dasawisma.kelompokapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -14,19 +15,19 @@ import javax.validation.constraints.NotBlank;
 })
 public class KetuaDasawisma {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
   @Column(name = "no_kader", nullable = false, updatable = false, unique = true)
   @NotBlank(message = "ID Kader harus diisi.")
   private String noKader;
-  @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
+  @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
   @JoinColumn(name = "rt_tugas", referencedColumnName = "kode_rt")
   private MasterRt rt;
-  @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "ketuaDasawisma")
+  @JsonIgnore
+  @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "ketuaDasawisma")
   private KelompokDasawisma kelompokDasawisma;
-  @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
+  @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
   @JoinColumn(name = "nik_petugas", referencedColumnName = "nik")
   private Petugas petugas;
   @Embedded
+  @JsonIgnore
   private AuditMaster auditMaster = new AuditMaster();
 }

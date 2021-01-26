@@ -1,5 +1,6 @@
 package id.dasawisma.kelompokdata.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -16,5 +17,6 @@ public class OptionPekerjaan {
   @NotBlank(message = "Label Pekerjaan harus diisi.")
   private String labelPekerjaan;
   @Embedded
+  @JsonIgnore
   private AuditMaster auditMaster = new AuditMaster();
 }

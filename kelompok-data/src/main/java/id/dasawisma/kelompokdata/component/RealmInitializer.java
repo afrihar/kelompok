@@ -147,7 +147,7 @@ public class RealmInitializer implements CommandLineRunner {
         case "kota.jakarta.barat":
           clientRoles.put(CLIENT_NAME, Collections.singletonList(CLIENT_ROLES.get(3)));
           break;
-        case "kecamatan.palmerah":
+        case "kec.palmerah":
           clientRoles.put(CLIENT_NAME, Collections.singletonList(CLIENT_ROLES.get(4)));
           break;
         default:

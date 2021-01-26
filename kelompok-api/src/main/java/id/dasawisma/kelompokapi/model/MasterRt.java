@@ -1,10 +1,10 @@
 package id.dasawisma.kelompokapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
-import java.io.Serializable;
 
 @Data
 @Entity
@@ -13,10 +13,8 @@ import java.io.Serializable;
     @Index(name = "idx_nama_ketua_rt", columnList = "nama_ketua_rt"),
     @Index(name = "idx_kode_rw_rt", columnList = "kode_rw")
 })
-public class MasterRt implements Serializable {
+public class MasterRt {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
   @Column(name = "kode_rt", nullable = false, updatable = false, unique = true)
   @NotBlank(message = "Kode RT harus diisi.")
   private String kodeRt;
@@ -30,9 +28,10 @@ public class MasterRt implements Serializable {
   private String noTelpRt;
   @Column(name = "no_telp_rt_alternatif")
   private String noTelpRtAlt;
-  @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
+  @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
   @JoinColumn(name = "kode_rw", referencedColumnName = "kode_rw")
   private MasterRw rw;
   @Embedded
+  @JsonIgnore
   private AuditMaster auditMaster = new AuditMaster();
 }

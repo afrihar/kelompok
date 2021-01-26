@@ -1,7 +1,6 @@
 package id.dasawisma.kelompokdata.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import id.dasawisma.kelompokdata.util.PrincipalUtil;
 import lombok.Data;
 
 import javax.persistence.Column;
@@ -10,6 +9,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import java.time.LocalDateTime;
 
+@SuppressWarnings("JpaDataSourceORMInspection")
 @Data
 @Embeddable
 public class AuditMaster {
@@ -27,12 +27,12 @@ public class AuditMaster {
   @PrePersist
   public void prePersist() {
     createdAt = LocalDateTime.now();
-    createdBy = PrincipalUtil.getPreferredUsername();
+    createdBy = "Rangga";
   }
 
   @PreUpdate
   public void preUpdate() {
     updatedAt = LocalDateTime.now();
-    createdBy = PrincipalUtil.getPreferredUsername();
+    createdBy = "Rangga";
   }
 }

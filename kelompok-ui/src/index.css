@@ -5,21 +5,22 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
 code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
 .ui.menu {
     background: #E5E5E5;
 }
-.ui.container {
-    /*padding-bottom: 4em;*/
-}
+
 /*noinspection CssUnusedSymbol*/
 .Toastify__toast {
     border-radius: 6px !important;
 }
-.content {
+
+.isi {
     padding-top: 80px;
     padding-bottom: 60px;
 }

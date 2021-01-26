@@ -1,16 +1,15 @@
-import React, {Component} from "react";
-import {withKeycloak} from "@react-keycloak/web";
-import {handleLogError, isKelurahan, isPusdatin} from "../../util/Helpers";
-import {Redirect} from "react-router-dom";
-import {kelompokApi} from "../../util/KelompokApi";
-import {toast, ToastContainer} from "react-toastify";
-import {Button, Container, Form} from "semantic-ui-react";
-import ConfirmationModal from "../../util/ConfirmationModal";
+import React, { Component } from 'react'
+import { withKeycloak } from '@react-keycloak/web'
+import { handleLogError, isKecamatan, isKelurahan, isKota, isProvinsi, isPusdatin } from '../../util/Helpers'
+import { Redirect } from 'react-router-dom'
+import { kelompokApi } from '../../util/KelompokApi'
+import { toast, ToastContainer } from 'react-toastify'
+import { Button, Container, Divider, Form } from 'semantic-ui-react'
+import ConfirmationModal from '../../util/ConfirmationModal'
 
 class RwDetail extends Component {
   formInitialState = {
-    id: '',
-    masterKelurahan: {kodeKelurahan: ''},
+    kelurahan: { kodeKelurahan: '' },
     kodeRw: '',
     labelRw: '',
     namaKetuaRw: '',
@@ -19,7 +18,7 @@ class RwDetail extends Component {
     noTelpRwAlt: '',
     kodeRwError: false,
     labelRwError: false,
-    masterKelurahanError: false
+    kelurahanError: false
   }
   modalInitialState = {
     isOpen: false,
@@ -29,36 +28,35 @@ class RwDetail extends Component {
     onClose: null
   }
   state = {
-    modal: {...this.modalInitialState},
-    form: {...this.formInitialState},
+    modal: { ...this.modalInitialState },
+    form: { ...this.formInitialState },
     deleteRw: null,
     kelurahanOptions: [],
     readOnly: true,
     isLoadingForm: false
   }
 
-  async componentDidMount() {
-    this.setState({isLoadingForm: true})
-    const {keycloak} = this.props
+  async componentDidMount () {
+    this.setState({ isLoadingForm: true })
+    const { keycloak } = this.props
     try {
-      const getKelurahanOptions = await kelompokApi.getKelurahanOptions(keycloak.token)
+      const getKelurahanOptions = await kelompokApi.getRwOptionsKelurahan(keycloak.token)
       const kelurahanOptions = getKelurahanOptions.data
-      this.setState({kelurahanOptions})
+      this.setState({ kelurahanOptions })
     } catch (error) {
-      toast.error(error.request.response);
+      toast.error(error.request.response)
       handleLogError(error)
     }
-    const param = this.props.match.params.id
+    const param = this.props.match.params.kodeRw
     if (param === 'tambah') {
-      this.setState({form: {...this.formInitialState}, readOnly: false}
+      this.setState({ form: { ...this.formInitialState }, readOnly: false }
       )
     } else {
       try {
-        const response = await kelompokApi.getRwById(param, keycloak.token)
+        const response = await kelompokApi.getRwByKode(param, keycloak.token)
         const rw = response.data
         const form = {
-          id: rw.id,
-          masterKelurahan: {kodeKelurahan: rw.masterKelurahan.kodeKelurahan},
+          kelurahan: { kodeKelurahan: rw.kelurahan.kodeKelurahan },
           kodeRw: rw.kodeRw,
           labelRw: rw.labelRw,
           namaKetuaRw: rw.namaKetuaRw,
@@ -68,108 +66,143 @@ class RwDetail extends Component {
           kodeRwError: false,
           labelRwError: false
         }
-        this.setState({form})
+        this.setState({ form })
       } catch (error) {
         handleLogError(error)
-        this.props.history.push("/rw");
+        this.props.history.push('/rw')
       }
     }
-    this.setState({isLoadingForm: false})
+    this.setState({ isLoadingForm: false })
   }
 
-  isValidForm = () => {
-    const form = {...this.state.form}
+  isValidForm = async () => {
+    const form = { ...this.state.form }
     let kodeRwError = false
     let labelRwError = false
-    let masterKelurahanError = false
+    let kelurahanError = false
     form.kodeRwError = kodeRwError
     form.labelRwError = labelRwError
-    form.masterKelurahanError = masterKelurahanError
+    form.kelurahanError = kelurahanError
     if (form.kodeRw.trim() === '') {
       kodeRwError = true
-      form.kodeRwError = {pointing: 'below', content: 'Kode Rw harus diisi'}
+      form.kodeRwError = { pointing: 'below', content: 'Kode Rw harus diisi' }
     } else if (form.kodeRw.length !== 13) {
       kodeRwError = true
-      form.kodeRwError = {pointing: 'below', content: 'Kode Rw harus 13 digit'}
+      form.kodeRwError = { pointing: 'below', content: 'Kode Rw harus 13 digit' }
+    } else if (form.kelurahan.kodeKelurahan !== form.kodeRw.substr(0, 10)) {
+      kodeRwError = true
+      form.kodeRwError = {
+        pointing: 'below',
+        content: 'Kode RW harus diawali dengan ' + form.kelurahan.kodeKelurahan
+      }
+    } else {
+      if (this.props.match.params.kodeRw === 'tambah') {
+        try {
+          const { keycloak } = this.props
+          const response = await kelompokApi.getRwByKode(form.kodeRw, keycloak.token)
+          const rw = response.data
+          kodeRwError = true
+          form.labelRwError = {
+            pointing: 'below',
+            content: 'RW ' + rw.labelRw + ' sudah ada di kelurahan ' + rw.kelurahan.namaKelurahan
+          }
+        } catch (error) {
+          handleLogError(error)
+          kodeRwError = false
+          form.labelRwError = false
+        }
+      }
     }
     if (form.labelRw.trim() === '') {
       labelRwError = true
-      form.labelRwError = {pointing: 'below', content: 'Label Rw harus diisi'}
+      form.labelRwError = { pointing: 'below', content: 'Label Rw harus diisi' }
     } else if (form.labelRw.length !== 3) {
       labelRwError = true
-      form.labelRwError = {pointing: 'below', content: 'Label Rw harus 3 digit'}
+      form.labelRwError = { pointing: 'below', content: 'Label Rw harus 3 digit' }
     }
-    if (form.masterKelurahan.kodeKelurahan.trim() === '') {
-      masterKelurahanError = true
-      form.masterKelurahanError = {pointing: 'below', content: 'Kelurahan harus dipilih'}
+    if (form.kelurahan.kodeKelurahan.trim() === '') {
+      kelurahanError = true
+      form.kelurahanError = { pointing: 'below', content: 'Kelurahan harus dipilih' }
     }
-    this.setState({form})
-    return (!(kodeRwError || labelRwError || masterKelurahanError))
+    this.setState({ form })
+    return (!(kodeRwError || labelRwError || kelurahanError))
   }
   handleActionModal = async (response) => {
     if (response) {
-      const {keycloak} = this.props
-      const {deleteRw} = this.state
+      const { keycloak } = this.props
+      const { deleteRw } = this.state
       try {
-        await kelompokApi.deleteRw(deleteRw.id, keycloak.token)
+        await kelompokApi.deleteRw(deleteRw.kodeRw, keycloak.token)
         toast.info(<div><p>RW {deleteRw.labelRw} telah dihapus, Mohon Tunggu...</p>
-        </div>, {onClose: () => this.props.history.push("/rw")});
+        </div>, { onClose: () => this.props.history.push('/rw') })
       } catch (error) {
-        toast.error(error.request.response, {onClose: () => this.setState({isLoadingForm: false})});
+        toast.error(error.request.response, { onClose: () => this.setState({ isLoadingForm: false }) })
         handleLogError(error)
       }
     }
-    this.setState({modal: {...this.modalInitialState}})
+    this.setState({ modal: { ...this.modalInitialState } })
   }
   handleCloseModal = () => {
-    this.setState({modal: {...this.modalInitialState}, isLoadingForm: false})
+    this.setState({ modal: { ...this.modalInitialState }, isLoadingForm: false })
   }
   handleChange = (e) => {
-    const {id, value} = e.target
-    const form = {...this.state.form}
+    const { id, value } = e.target
+    const form = { ...this.state.form }
     form[id] = value
-    this.setState({form})
+    this.setState({ form })
   }
   handleChangeNumber = (e) => {
-    const re = /^[0-9\b]+$/;
+    const re = /^[0-9\b]+$/
     if (
       e.target.value === '' || re.test(e.target.value)) {
-      const {id, value} = e.target
-      const form = {...this.state.form}
+      const { id, value } = e.target
+      const form = { ...this.state.form }
       form[id] = value
-      this.setState({form})
+      this.setState({ form })
     }
   }
-  handleChangeDropdown = (e, {value}) => {
-    const form = {...this.state.form}
-    form.masterKelurahan.kodeKelurahan = value
-    form.masterKelurahanError = false
-    if (this.props.match.params.id === 'tambah') {
-      form.kodeRw = value
+  handleChangeLabelRw = (e) => {
+    const re = /^[0-9\b]+$/
+    if (
+      e.target.value === '' || re.test(e.target.value)) {
+      const { id, value } = e.target
+      const form = { ...this.state.form }
+      form.labelRwError = false
+      form.kodeRwError = false
+      form[id] = value
+      form.kodeRw = form.kelurahan.kodeKelurahan.trim() + value
+      this.setState({ form })
     }
-    this.setState({form})
+  }
+  handleChangeDropdown = (e, { value }) => {
+    const form = { ...this.state.form }
+    form.kelurahan.kodeKelurahan = value
+    form.kelurahanError = false
+    form.kodeRwError = false
+    form.kodeRw = value + form.labelRw
+    this.setState({ form })
   }
   handleSaveRw = async () => {
-    if (!this.isValidForm()) {
+    if (!await this.isValidForm()) {
       return
     }
-    this.setState({isLoadingForm: true})
-    const {keycloak} = this.props
-    const {id, kodeRw, labelRw, namaKetuaRw, noHpRw, noTelpRw, noTelpRwAlt, masterKelurahan} = this.state.form
-    const rw = {id, kodeRw, labelRw, namaKetuaRw, noHpRw, noTelpRw, noTelpRwAlt, masterKelurahan}
+    this.setState({ isLoadingForm: true })
+    const { keycloak } = this.props
+    const { kodeRw, labelRw, namaKetuaRw, noHpRw, noTelpRw, noTelpRwAlt, kelurahan } = this.state.form
+    const rw = { kodeRw, labelRw, namaKetuaRw, noHpRw, noTelpRw, noTelpRwAlt, kelurahan }
     try {
       await kelompokApi.saveRw(rw, keycloak.token)
       toast.success(<div><p>Data telah tersimpan, Mohon Tunggu...</p></div>,
-        {onClose: () => this.props.history.push("/rw")});
+        { onClose: () => this.props.history.push('/rw') })
     } catch (error) {
       toast.error(<div><p>Ada Kesalahan, Silahkan Periksa Data RW..</p>
-      </div>, {onClose: () => this.setState({isLoadingForm: false})})
+      </div>, { onClose: () => this.setState({ isLoadingForm: false }) })
 
       handleLogError(error)
     }
   }
   handleDeleteRw = (rw) => {
-    this.setState({isLoadingForm: true})
+    this.setState({ isLoadingForm: true })
     const modal = {
       isOpen: true,
       header: 'Hapus RW',
@@ -177,46 +210,22 @@ class RwDetail extends Component {
       onAction: this.handleActionModal,
       onClose: this.handleCloseModal
     }
-    this.setState({modal, deleteRw: rw})
+    this.setState({ modal, deleteRw: rw })
     // The deletion is done in handleActionModal function
   }
 
-  render() {
-    const {keycloak} = this.props
-    const {isLoadingForm, modal, form, readOnly, kelurahanOptions} = this.state
-    if (isPusdatin(keycloak) || isKelurahan(keycloak)) {
+  render () {
+    const { keycloak } = this.props
+    const { isLoadingForm, modal, form, readOnly, kelurahanOptions } = this.state
+    if (isPusdatin(keycloak) || isProvinsi(keycloak) || isKota(keycloak) || isKecamatan(keycloak) || isKelurahan(keycloak)) {
       return (
-        <Container className={'content'} text>
+        <Container className={'isi'} text>
           <Form loading={isLoadingForm}>
-            <Form.Field>
-              <label>Id RW</label>
-              <Form.Input
-                fluid
-                readOnly
-                id='id'
-                placeholder={'ID Akan dibentuk oleh Sistem'}
-                onChange={this.handleChangeNumber}
-                value={form.id}/>
-            </Form.Field>
-            <Form.Field>
-              <label>Kelurahan</label>
-              <Form.Dropdown
-                placeholder='Kelurahan'
-                noResultsMessage='Tidak ada nama Kelurahan...'
-                onChange={this.handleChangeDropdown}
-                search
-                options={kelurahanOptions}
-                error={form.masterKelurahanError}
-                selection
-                clearable
-                value={form.masterKelurahan.kodeKelurahan === '' ? undefined : form.masterKelurahan.kodeKelurahan}
-              />
-            </Form.Field>
             <Form.Field required>
               <label>Kode RW (Tidak Dapat Diubah)</label>
               <Form.Input
                 fluid
-                readOnly={readOnly}
+                readOnly
                 placeholder='Kode RW'
                 maxLength='13'
                 id='kodeRw'
@@ -224,16 +233,31 @@ class RwDetail extends Component {
                 onChange={this.handleChangeNumber}
                 value={form.kodeRw}/>
             </Form.Field>
+            <Divider/>
+            <Form.Field>
+              <label>Kelurahan</label>
+              <Form.Dropdown
+                placeholder='Kelurahan'
+                noResultsMessage='Tidak ada nama Kelurahan...'
+                onChange={this.handleChangeDropdown}
+                search
+                disabled={readOnly}
+                options={kelurahanOptions}
+                error={form.kelurahanError}
+                selection
+                clearable
+                value={form.kelurahan.kodeKelurahan === '' ? undefined : form.kelurahan.kodeKelurahan}
+              />
+            </Form.Field>
             <Form.Field required>
               <label>Label RW (3 digit)</label>
               <Form.Input
                 fluid
                 placeholder='Label RW'
                 error={form.labelRwError}
-                readOnly={readOnly}
                 maxLength='3'
                 id='labelRw'
-                onChange={this.handleChangeNumber}
+                onChange={this.handleChangeLabelRw}
                 value={form.labelRw}/>
             </Form.Field>
             <Form.Field>
@@ -272,7 +296,7 @@ class RwDetail extends Component {
                 onChange={this.handleChangeNumber}
                 value={form.noTelpRwAlt}/>
             </Form.Field>
-            {form.id ?
+            {(this.props.match.params.kodeRw !== 'tambah') ?
               <Button
                 negative
                 floated='left'

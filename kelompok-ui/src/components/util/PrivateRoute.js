@@ -2,7 +2,7 @@ import React from 'react'
 import { useKeycloak } from '@react-keycloak/web'
 import { Route } from 'react-router-dom'
 
-function PrivateRoute({ component: Component, ...rest }) {
+function PrivateRoute ({ component: Component, ...rest }) {
   const { keycloak } = useKeycloak()
   return (
     <Route

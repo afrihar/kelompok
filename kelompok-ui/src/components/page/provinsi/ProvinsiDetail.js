@@ -1,16 +1,15 @@
-import React, {Component} from 'react'
-import {Button, Container, Form} from "semantic-ui-react";
-import {kelompokApi} from "../../util/KelompokApi";
-import {handleLogError, isPusdatin} from "../../util/Helpers";
-import {toast, ToastContainer} from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
-import ConfirmationModal from "../../util/ConfirmationModal";
-import {Redirect} from "react-router-dom";
-import {withKeycloak} from "@react-keycloak/web";
+import React, { Component } from 'react'
+import { Button, Container, Form } from 'semantic-ui-react'
+import { kelompokApi } from '../../util/KelompokApi'
+import { handleLogError, isPusdatin } from '../../util/Helpers'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import ConfirmationModal from '../../util/ConfirmationModal'
+import { Redirect } from 'react-router-dom'
+import { withKeycloak } from '@react-keycloak/web'
 
 class ProvinsiDetail extends Component {
   formInitialState = {
-    id: '',
     kodeProvinsi: '',
     kodeProvinsiCapil: '',
     namaProvinsi: '',
@@ -26,45 +25,43 @@ class ProvinsiDetail extends Component {
     onClose: null
   }
   state = {
-    modal: {...this.modalInitialState},
-    form: {...this.formInitialState},
+    modal: { ...this.modalInitialState },
+    form: { ...this.formInitialState },
     deleteProvinsi: null,
     readOnly: true,
     isLoadingForm: false
   }
 
-  async componentDidMount() {
-    this.setState({isLoadingForm: true})
-    const param = this.props.match.params.id
+  async componentDidMount () {
+    this.setState({ isLoadingForm: true })
+    const param = this.props.match.params.kodeProvinsi
     if (param === 'tambah') {
-      this.setState({form: {...this.formInitialState}, readOnly: false}
+      this.setState({ form: { ...this.formInitialState }, readOnly: false }
       )
     } else {
-      const {keycloak} = this.props
+      const { keycloak } = this.props
       try {
-        const response = await kelompokApi.getProvinsiById(param, keycloak.token)
+        const response = await kelompokApi.getProvinsiByKode(param, keycloak.token)
         const provinsi = response.data
         const form = {
-          id: provinsi.id,
           kodeProvinsi: provinsi.kodeProvinsi,
           kodeProvinsiCapil: provinsi.kodeProvinsiCapil,
           namaProvinsi: provinsi.namaProvinsi,
-          idProvinsiError: false,
           kodeProvinsiError: false,
           kodeProvinsiCapilError: false,
           namaProvinsiError: false
         }
-        this.setState({provinsi, form})
+        this.setState({ provinsi, form })
       } catch (error) {
         handleLogError(error)
-        this.props.history.push("/provinsi");
+        this.props.history.push('/provinsi')
       }
     }
-    this.setState({isLoadingForm: false})
+    this.setState({ isLoadingForm: false })
   }
 
-  isValidForm = () => {
-    const form = {...this.state.form}
+  isValidForm = async () => {
+    const form = { ...this.state.form }
     let kodeProvinsiError = false
     let kodeProvinsiCapilError = false
     let namaProvinsiError = false
@@ -73,85 +70,119 @@ class ProvinsiDetail extends Component {
     form.namaProvinsiError = namaProvinsiError
     if (form.kodeProvinsi.trim() === '') {
       kodeProvinsiError = true
-      form.kodeProvinsiError = {pointing: 'below', content: 'Kode Provinsi harus diisi'}
+      form.kodeProvinsiError = { pointing: 'below', content: 'Kode Provinsi harus diisi' }
     } else if (form.kodeProvinsi.length !== 2) {
       kodeProvinsiError = true
-      form.kodeProvinsiError = {pointing: 'below', content: 'Kode Provinsi harus 2 digit'}
+      form.kodeProvinsiError = { pointing: 'below', content: 'Kode Provinsi harus 2 digit' }
+    } else {
+      if (this.props.match.params.kodeProvinsi === 'tambah') {
+        try {
+          const { keycloak } = this.props
+          const response = await kelompokApi.getProvinsiByKode(form.kodeProvinsi, keycloak.token)
+          const provinsi = response.data
+          kodeProvinsiError = true
+          form.kodeProvinsiError = {
+            pointing: 'below',
+            content: 'Kode Provinsi sudah terpakai oleh Provinsi ' + provinsi.namaProvinsi
+          }
+        } catch (error) {
+          handleLogError(error)
+          form.kodeProvinsiError = false
+          kodeProvinsiError = false
+        }
+      }
     }
     if (form.kodeProvinsiCapil.trim() === '') {
       kodeProvinsiCapilError = true
-      form.kodeProvinsiCapilError = {pointing: 'below', content: 'Kode Provinsi Capil harus diisi'}
+      form.kodeProvinsiCapilError = { pointing: 'below', content: 'Kode Provinsi Kemendagri harus diisi' }
     } else if (form.kodeProvinsiCapil.length !== 2) {
       kodeProvinsiCapilError = true
-      form.kodeProvinsiCapilError = {pointing: 'below', content: 'Kode Provinsi Capil harus 2 digit'}
+      form.kodeProvinsiCapilError = { pointing: 'below', content: 'Kode Provinsi Kemendagri harus 2 digit' }
+    } else {
+      try {
+        if (this.props.match.params.kodeProvinsi === 'tambah') {
+          const { keycloak } = this.props
+          const response = await kelompokApi.getProvinsiByKodeCapil(form.kodeProvinsiCapil, keycloak.token)
+          const provinsi = response.data
+          kodeProvinsiCapilError = true
+          form.kodeProvinsiCapilError = {
+            pointing: 'below',
+            content: 'Kode Provinsi Capil sudah terpakai oleh Provinsi ' + provinsi.namaProvinsi
+          }
+        }
+      } catch (error) {
+        handleLogError(error)
+        kodeProvinsiCapilError = false
+        form.kodeProvinsiCapilError = false
+      }
     }
     if (form.namaProvinsi.trim() === '') {
       namaProvinsiError = true
-      form.namaProvinsiError = {pointing: 'below', content: 'Nama Provinsi harus diisi'}
+      form.namaProvinsiError = { pointing: 'below', content: 'Nama Provinsi harus diisi' }
     }
-    this.setState({form})
+    this.setState({ form })
     return (!(kodeProvinsiError || kodeProvinsiCapilError || namaProvinsiError))
   }
   handleActionModal = async (response) => {
     if (response) {
-      const {keycloak} = this.props
-      const {deleteProvinsi} = this.state
+      const { keycloak } = this.props
+      const { deleteProvinsi } = this.state
       try {
-        await kelompokApi.deleteProvinsi(deleteProvinsi.id, keycloak.token)
+        await kelompokApi.deleteProvinsi(deleteProvinsi.kodeProvinsi, keycloak.token)
         toast.info(<div><p>Provinsi {deleteProvinsi.namaProvinsi} telah dihapus, Mohon Tunggu...</p>
-        </div>, {onClose: () => this.props.history.push("/provinsi")});
+        </div>, { onClose: () => this.props.history.push('/provinsi') })
       } catch (error) {
-        toast.error(error.request.response, {onClose: () => this.setState({isLoadingForm: false})});
+        toast.error(error.request.response, { onClose: () => this.setState({ isLoadingForm: false }) })
         handleLogError(error)
       }
     } else {
-      this.setState({isLoadingForm: false})
+      this.setState({ isLoadingForm: false })
     }
-    this.setState({modal: {...this.modalInitialState}})
+    this.setState({ modal: { ...this.modalInitialState } })
   }
   handleCloseModal = () => {
-    this.setState({modal: {...this.modalInitialState}, isLoadingForm: false})
+    this.setState({ modal: { ...this.modalInitialState }, isLoadingForm: false })
   }
   handleChangeToUpperCase = (e) => {
-    const re = /^[a-zA-Z ]+$/;
+    const re = /^[a-zA-Z ]+$/
     if (
       e.target.value === '' || re.test(e.target.value)) {
-      const {id, value} = e.target
-      const form = {...this.state.form}
+      const { id, value } = e.target
+      const form = { ...this.state.form }
       form[id] = value.toUpperCase()
-      this.setState({form})
+      this.setState({ form })
     }
   }
   handleChangeNumber = (e) => {
-    const re = /^[0-9\b]+$/;
+    const re = /^[0-9\b]+$/
     if (
       e.target.value === '' || re.test(e.target.value)) {
-      const {id, value} = e.target
-      const form = {...this.state.form}
+      const { id, value } = e.target
+      const form = { ...this.state.form }
       form[id] = value
-      this.setState({form})
+      this.setState({ form })
     }
   }
   handleSaveProvinsi = async () => {
-    if (!this.isValidForm()) {
+    if (!await this.isValidForm()) {
       return
     }
-    this.setState({isLoadingForm: true})
-    const {keycloak} = this.props
-    const {id, kodeProvinsi, kodeProvinsiCapil, namaProvinsi} = this.state.form
-    const provinsi = {id, kodeProvinsi, kodeProvinsiCapil, namaProvinsi}
+    this.setState({ isLoadingForm: true })
+    const { keycloak } = this.props
+    const { kodeProvinsi, kodeProvinsiCapil, namaProvinsi } = this.state.form
+    const provinsi = { kodeProvinsi, kodeProvinsiCapil, namaProvinsi }
     try {
       await kelompokApi.saveProvinsi(provinsi, keycloak.token)
       toast.success(<div><p>Data telah tersimpan, Mohon Tunggu...</p></div>,
-        {onClose: () => this.props.history.push("/provinsi")});
+        { onClose: () => this.props.history.push('/provinsi') })
     } catch (error) {
       toast.error(<div><p>Ada Kesalahan, Silahkan Periksa Kode Provinsi</p>
-      </div>, {onClose: () => this.setState({isLoadingForm: false})})
+      </div>, { onClose: () => this.setState({ isLoadingForm: false }) })
       handleLogError(error)
     }
   }
   handleDeleteProvinsi = (provinsi) => {
-    this.setState({isLoadingForm: true})
+    this.setState({ isLoadingForm: true })
     const modal = {
       isOpen: true,
       header: 'Hapus Provinsi',
@@ -159,26 +190,16 @@ class ProvinsiDetail extends Component {
       onAction: this.handleActionModal,
       onClose: this.handleCloseModal
     }
-    this.setState({modal, deleteProvinsi: provinsi})
+    this.setState({ modal, deleteProvinsi: provinsi })
   }
 
-  render() {
-    const {keycloak} = this.props
-    const {isLoadingForm, modal, form, readOnly} = this.state
+  render () {
+    const { keycloak } = this.props
+    const { isLoadingForm, modal, form, readOnly } = this.state
     if (isPusdatin(keycloak)) {
       return (
-        <Container className={'content'} text>
+        <Container className={'isi'} text>
           <Form loading={isLoadingForm}>
-            <Form.Field>
-              <label>Id Provinsi</label>
-              <Form.Input
-                fluid
-                readOnly
-                id='id'
-                placeholder={'ID Akan dibentuk oleh Sistem'}
-                onChange={this.handleChangeNumber}
-                value={form.id}/>
-            </Form.Field>
             <Form.Field required>
               <label>Kode Provinsi (Tidak Dapat Diubah)</label>
               <Form.Input
@@ -212,7 +233,7 @@ class ProvinsiDetail extends Component {
                 onChange={this.handleChangeToUpperCase}
                 value={form.namaProvinsi}/>
             </Form.Field>
-            {form.id ? <Button
+            {(this.props.match.params.kodeProvinsi !== 'tambah') ? <Button
               negative
               floated='left'
               onClick={() => this.handleDeleteProvinsi(form)}>Hapus</Button> : <></>}
@@ -238,7 +259,6 @@ class ProvinsiDetail extends Component {
     } else {
       return <Redirect to='/provinsi'/>
     }
-
   }
 }
 

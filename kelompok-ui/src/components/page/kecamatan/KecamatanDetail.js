@@ -1,24 +1,23 @@
-import React, {Component} from 'react'
-import {withKeycloak} from "@react-keycloak/web";
-import {Button, Container, Form} from "semantic-ui-react";
-import {kelompokApi} from "../../util/KelompokApi";
-import {handleLogError, isKota, isPusdatin} from "../../util/Helpers";
-import {Redirect} from "react-router-dom";
-import ConfirmationModal from "../../util/ConfirmationModal";
-import {toast, ToastContainer} from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import React, { Component } from 'react'
+import { withKeycloak } from '@react-keycloak/web'
+import { Button, Container, Form } from 'semantic-ui-react'
+import { kelompokApi } from '../../util/KelompokApi'
+import { handleLogError, isKota, isProvinsi, isPusdatin } from '../../util/Helpers'
+import { Redirect } from 'react-router-dom'
+import ConfirmationModal from '../../util/ConfirmationModal'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 class KecamatanDetail extends Component {
   formInitialState = {
-    id: '',
-    masterKota: {kodeKota: ''},
+    kota: { kodeKota: '' },
     kodeKecamatan: '',
     kodeKecamatanCapil: '',
     namaKecamatan: '',
     kodeKecamatanError: false,
     kodeKecamatanCapilError: false,
     namaKecamatanError: false,
-    masterKotaError: false
+    kotaError: false
   }
   modalInitialState = {
     isOpen: false,
@@ -28,163 +27,191 @@ class KecamatanDetail extends Component {
     onClose: null
   }
   state = {
-    modal: {...this.modalInitialState},
-    form: {...this.formInitialState},
+    modal: { ...this.modalInitialState },
+    form: { ...this.formInitialState },
     deleteKecamatan: null,
     kotaOptions: [],
     readOnly: true,
     isLoadingForm: false
   }
 
-  async componentDidMount() {
-    this.setState({isLoadingForm: true})
-    const {keycloak} = this.props
+  async componentDidMount () {
+    this.setState({ isLoadingForm: true })
+    const { keycloak } = this.props
     try {
-      const getKotaIdName = await kelompokApi.getKotaOptions(keycloak.token)
-      const kotaOptions = getKotaIdName.data
-      this.setState({kotaOptions})
+      const getKotaOptions = await kelompokApi.getKecamatanOptionsKota(keycloak.token)
+      const kotaOptions = getKotaOptions.data
+      this.setState({ kotaOptions })
     } catch (error) {
-      toast.error(error.request.response);
+      toast.error(error.request.response)
       handleLogError(error)
     }
-    const param = this.props.match.params.id
+    const param = this.props.match.params.kodeKecamatan
     if (param === 'tambah') {
-      this.setState({form: {...this.formInitialState}, readOnly: false}
+      this.setState({ form: { ...this.formInitialState }, readOnly: false }
       )
     } else {
       try {
-        const response = await kelompokApi.getKecamatanById(param, keycloak.token)
+        const response = await kelompokApi.getKecamatanByKode(param, keycloak.token)
         const kecamatan = response.data
         const form = {
-          id: kecamatan.id,
-          masterKota: {kodeKota: kecamatan.masterKota.kodeKota},
+          kota: { kodeKota: kecamatan.kota.kodeKota },
           kodeKecamatan: kecamatan.kodeKecamatan,
           kodeKecamatanCapil: kecamatan.kodeKecamatanCapil,
           namaKecamatan: kecamatan.namaKecamatan,
-          idKecamatanError: false,
           kodeKecamatanError: false,
           kodeKecamatanCapilError: false,
           namaKecamatanError: false
         }
-        this.setState({form})
+        this.setState({ form })
       } catch (error) {
         handleLogError(error)
-        this.props.history.push("/kecamatan");
+        this.props.history.push('/kecamatan')
       }
     }
-    this.setState({isLoadingForm: false})
+    this.setState({ isLoadingForm: false })
   }
 
-  isValidForm = () => {
-    const form = {...this.state.form}
+  isValidForm = async () => {
+    const form = { ...this.state.form }
     let kodeKecamatanError = false
     let kodeKecamatanCapilError = false
     let namaKecamatanError = false
-    let masterKotaError = false
+    let kotaError = false
     form.kodeKecamatanError = kodeKecamatanError
     form.kodeKecamatanCapilError = kodeKecamatanCapilError
     form.namaKecamatanError = namaKecamatanError
-    form.masterKotaError = masterKotaError
+    form.kotaError = kotaError
     if (form.kodeKecamatan.trim() === '') {
       kodeKecamatanError = true
-      form.kodeKecamatanError = {pointing: 'below', content: 'Kode Kecamatan harus diisi'}
+      form.kodeKecamatanError = { pointing: 'below', content: 'Kode Kecamatan harus diisi' }
     } else if (form.kodeKecamatan.length !== 7) {
       kodeKecamatanError = true
-      form.kodeKecamatanError = {pointing: 'below', content: 'Kode Kecamatan harus 7 digit'}
+      form.kodeKecamatanError = { pointing: 'below', content: 'Kode Kecamatan harus 7 digit' }
+    } else if (form.kota.kodeKota !== form.kodeKecamatan.substr(0, 4)) {
+      kodeKecamatanError = true
+      form.kodeKecamatanError = {
+        pointing: 'below',
+        content: 'Kode Kecamatan harus diawali dengan ' + form.kota.kodeKota
+      }
+    } else {
+      try {
+        const { keycloak } = this.props
+        const response = await kelompokApi.getKecamatanByKode(form.kodeKecamatan, keycloak.token)
+        const kecamatan = response.data
+        kodeKecamatanError = true
+        form.kodeKecamatanError = {
+          pointing: 'below',
+          content: 'Kode Kecamatan sudah terpakai oleh Kecamatan ' + kecamatan.namaKecamatan
+        }
+      } catch (error) {
+        handleLogError(error)
+        kodeKecamatanError = false
+        form.kodeKecamatanError = false
+      }
     }
     if (form.kodeKecamatanCapil.trim() === '') {
       kodeKecamatanCapilError = true
-      form.kodeKecamatanCapilError = {pointing: 'below', content: 'Kode Kecamatan Capil harus diisi'}
+      form.kodeKecamatanCapilError = { pointing: 'below', content: 'Kode Kecamatan Kemendagri harus diisi' }
     } else if (form.kodeKecamatanCapil.length !== 7) {
       kodeKecamatanCapilError = true
-      form.kodeKecamatanCapilError = {pointing: 'below', content: 'Kode Kecamatan Capil harus 7 digit'}
+      form.kodeKecamatanCapilError = { pointing: 'below', content: 'Kode Kecamatan Kemendagri harus 7 digit' }
+    } else {
+      try {
+        const { keycloak } = this.props
+        const response = await kelompokApi.getKecamatanByKodeCapil(form.kodeKecamatanCapil, keycloak.token)
+        const kecamatan = response.data
+        kodeKecamatanCapilError = true
+        form.kodeKecamatanCapilError = {
+          pointing: 'below',
+          content: 'Kode Kecamatan Capil sudah terpakai oleh Kecamatan ' + kecamatan.namaKecamatan
+        }
+      } catch (error) {
+        handleLogError(error)
+        kodeKecamatanCapilError = false
+        form.kodeKecamatanCapilError = false
+      }
     }
     if (form.namaKecamatan.trim() === '') {
       namaKecamatanError = true
-      form.namaKecamatanError = {pointing: 'below', content: 'Nama Kecamatan harus diisi'}
+      form.namaKecamatanError = { pointing: 'below', content: 'Nama Kecamatan harus diisi' }
     }
-    if (form.masterKota.kodeKota.trim() === '') {
-      masterKotaError = true
-      form.masterKotaError = {pointing: 'below', content: 'Kota harus dipilih'}
+    if (form.kota.kodeKota.trim() === '') {
+      kotaError = true
+      form.kotaError = { pointing: 'below', content: 'Kota harus dipilih' }
     }
-    this.setState({form})
-    return (!(kodeKecamatanError || kodeKecamatanCapilError || namaKecamatanError || masterKotaError))
+    this.setState({ form })
+    return (!(kodeKecamatanError || kodeKecamatanCapilError || namaKecamatanError || kotaError))
   }
   handleActionModal = async (response) => {
     if (response) {
-      const {keycloak} = this.props
-      const {deleteKecamatan} = this.state
+      const { keycloak } = this.props
+      const { deleteKecamatan } = this.state
       try {
-        await kelompokApi.deleteKecamatan(deleteKecamatan.id, keycloak.token)
+        await kelompokApi.deleteKecamatan(deleteKecamatan.kodeKecamatan, keycloak.token)
         toast.info(<div><p>Kecamatan {deleteKecamatan.namaKecamatan} telah dihapus, Mohon Tunggu...</p>
-        </div>, {onClose: () => this.props.history.push("/kecamatan")});
+        </div>, { onClose: () => this.props.history.push('/kecamatan') })
       } catch (error) {
-        toast.error(error.request.response, {onClose: () => this.setState({isLoadingForm: false})});
+        toast.error(error.request.response, { onClose: () => this.setState({ isLoadingForm: false }) })
         handleLogError(error)
       }
     } else {
-      this.setState({isLoadingForm: false})
+      this.setState({ isLoadingForm: false })
     }
-    this.setState({modal: {...this.modalInitialState}})
+    this.setState({ modal: { ...this.modalInitialState } })
   }
   handleCloseModal = () => {
-    this.setState({modal: {...this.modalInitialState}, isLoadingForm: false})
-  }
-  handleChange = (e) => {
-    const {id, value} = e.target
-    const form = {...this.state.form}
-    form[id] = value
-    this.setState({form})
+    this.setState({ modal: { ...this.modalInitialState }, isLoadingForm: false })
   }
   handleChangeToUpperCase = (e) => {
-    const re = /^[a-zA-Z ]+$/;
+    const re = /^[a-zA-Z ]+$/
     if (e.target.value === '' || re.test(e.target.value)) {
-      const {id, value} = e.target
-      const form = {...this.state.form}
+      const { id, value } = e.target
+      const form = { ...this.state.form }
       form[id] = value.toUpperCase()
-      this.setState({form})
+      this.setState({ form })
     }
   }
   handleChangeNumber = (e) => {
-    const re = /^[0-9\b]+$/;
+    const re = /^[0-9\b]+$/
     if (
       e.target.value === '' || re.test(e.target.value)) {
-      const {id, value} = e.target
-      const form = {...this.state.form}
+      const { id, value } = e.target
+      const form = { ...this.state.form }
       form[id] = value
-      this.setState({form})
+      this.setState({ form })
     }
   }
-  handleChangeDropdown = (e, {value}) => {
-    const form = {...this.state.form}
-    form.masterKota.kodeKota = value
-    form.masterKotaError = false
-    if (this.props.match.params.id === 'tambah') {
+  handleChangeDropdown = (e, { value }) => {
+    const form = { ...this.state.form }
+    form.kota.kodeKota = value
+    form.kotaError = false
+    if (this.props.match.params.kodeKecamatan === 'tambah') {
       form.kodeKecamatan = value
       form.kodeKecamatanCapil = value
     }
-    this.setState({form})
+    this.setState({ form })
   }
   handleSaveKecamatan = async () => {
-    if (!this.isValidForm()) {
+    if (!await this.isValidForm()) {
       return
     }
-    this.setState({isLoadingForm: true})
-    const {keycloak} = this.props
-    const {id, kodeKecamatan, kodeKecamatanCapil, namaKecamatan, masterKota} = this.state.form
-    const kecamatan = {id, kodeKecamatan, kodeKecamatanCapil, namaKecamatan, masterKota}
+    this.setState({ isLoadingForm: true })
+    const { keycloak } = this.props
+    const { kodeKecamatan, kodeKecamatanCapil, namaKecamatan, kota } = this.state.form
+    const kecamatan = { kodeKecamatan, kodeKecamatanCapil, namaKecamatan, kota }
     try {
       await kelompokApi.saveKecamatan(kecamatan, keycloak.token)
       toast.success(<div><p>Data telah tersimpan, Mohon Tunggu...</p></div>,
-        {onClose: () => this.props.history.push("/kecamatan")});
+        { onClose: () => this.props.history.push('/kecamatan') })
     } catch (error) {
       toast.error(<div><p>Ada Kesalahan, Silahkan Periksa Kode Kecamatan</p>
-      </div>, {onClose: () => this.setState({isLoadingForm: false})})
+      </div>, { onClose: () => this.setState({ isLoadingForm: false }) })
       handleLogError(error)
     }
   }
   handleDeleteKecamatan = (kecamatan) => {
-    this.setState({isLoadingForm: true})
+    this.setState({ isLoadingForm: true })
     const modal = {
       isOpen: true,
       header: 'Hapus Kecamatan',
@@ -192,26 +219,16 @@ class KecamatanDetail extends Component {
       onAction: this.handleActionModal,
       onClose: this.handleCloseModal
     }
-    this.setState({modal, deleteKecamatan: kecamatan})
+    this.setState({ modal, deleteKecamatan: kecamatan })
   }
 
-  render() {
-    const {keycloak} = this.props
-    const {isLoadingForm, modal, form, readOnly, kotaOptions} = this.state
-    if (isPusdatin(keycloak) || isKota(keycloak)) {
+  render () {
+    const { keycloak } = this.props
+    const { isLoadingForm, modal, form, readOnly, kotaOptions } = this.state
+    if (isPusdatin(keycloak) || isProvinsi(keycloak) || isKota(keycloak)) {
       return (
-        <Container className={'content'} text>
+        <Container className={'isi'} text>
           <Form loading={isLoadingForm}>
-            <Form.Field>
-              <Form.Input
-                fluid
-                readOnly
-                label='Id Kecamatan'
-                id='id'
-                placeholder={'ID Akan dibentuk oleh Sistem'}
-                onChange={this.handleChangeNumber}
-                value={form.id}/>
-            </Form.Field>
             <Form.Field required>
               <label>Kota</label>
               <Form.Dropdown
@@ -219,11 +236,12 @@ class KecamatanDetail extends Component {
                 noResultsMessage='Tidak ada nama Kota...'
                 onChange={this.handleChangeDropdown}
                 search
+                disabled={readOnly}
                 options={kotaOptions}
-                error={form.masterKotaError}
+                error={form.kotaError}
                 selection
                 clearable
-                value={form.masterKota.kodeKota === '' ? undefined : form.masterKota.kodeKota}
+                value={form.kota.kodeKota === '' ? undefined : form.kota.kodeKota}
               />
             </Form.Field>
             <Form.Field required>
@@ -259,7 +277,7 @@ class KecamatanDetail extends Component {
                 onChange={this.handleChangeToUpperCase}
                 value={form.namaKecamatan}/>
             </Form.Field>
-            {form.id ?
+            {(this.props.match.params.kodeKecamatan !== 'tambah') ?
               <Button
                 negative
                 floated='left'

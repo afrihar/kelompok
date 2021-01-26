@@ -24,7 +24,7 @@ public class MasterProvinsiSpecification implements Specification<MasterProvinsi
     return cb.like(cb.lower(root.get("namaProvinsi")), "%" + filteredProvinsi.getNamaProvinsi().toLowerCase() + "%");
   }
 
-  private Predicate buildFilterKodeWilayah(Root<MasterProvinsi> root, CriteriaBuilder cb) {
+  private Predicate buildFilterByPrincipal(Root<MasterProvinsi> root, CriteriaBuilder cb) {
     return cb.like(root.get("kodeProvinsi"), PrincipalUtil.getKodeWilayah() + "%");
   }
 
@@ -36,27 +36,29 @@ public class MasterProvinsiSpecification implements Specification<MasterProvinsi
     predicate.getExpressions().add(buildFilterProvinsiByString(root, cb));
   }
 
-  private void filterProvinsiByKodeWilayah(Root<MasterProvinsi> root, CriteriaBuilder cb, Predicate predicate) {
-    predicate.getExpressions().add(buildFilterKodeWilayah(root, cb));
+  private void filterProvinsiByPrincipal(Root<MasterProvinsi> root, CriteriaBuilder cb, Predicate predicate) {
+    predicate.getExpressions().add(buildFilterByPrincipal(root, cb));
   }
 
-  private void filterProvinsiByStringAndKodeWilayah(Root<MasterProvinsi> root, CriteriaBuilder cb, Predicate predicate) {
+  private void filterProvinsiByStringAndByPrincipal(Root<MasterProvinsi> root, CriteriaBuilder cb, Predicate predicate) {
     predicate.getExpressions().add(cb.and(
         buildFilterProvinsiByString(root, cb),
-        buildFilterKodeWilayah(root, cb)
+        buildFilterByPrincipal(root, cb)
     ));
   }
 
   @Override
-  public Predicate toPredicate(Root<MasterProvinsi> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+  public Predicate toPredicate(@SuppressWarnings("NullableProblems") Root<MasterProvinsi> root,
+                               @SuppressWarnings("NullableProblems") CriteriaQuery<?> criteriaQuery,
+                               CriteriaBuilder criteriaBuilder) {
     Predicate predicate = criteriaBuilder.disjunction();
     if (PrincipalUtil.isPusdatin()) {
       if (filteredProvinsi.getNamaProvinsi() != null) filterProvinsiByString(root, criteriaBuilder, predicate);
       else getAllProvinsi(root, criteriaBuilder, predicate);
     } else {
       if (filteredProvinsi.getNamaProvinsi() != null)
-        filterProvinsiByStringAndKodeWilayah(root, criteriaBuilder, predicate);
-      else filterProvinsiByKodeWilayah(root, criteriaBuilder, predicate);
+        filterProvinsiByStringAndByPrincipal(root, criteriaBuilder, predicate);
+      else filterProvinsiByPrincipal(root, criteriaBuilder, predicate);
     }
     return predicate;
   }

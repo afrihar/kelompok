@@ -1,31 +1,44 @@
 import axios from 'axios'
-import {config} from '../../Constants'
+import { config } from '../../Constants'
 
 export const kelompokApi = {
   getUserExtrasMe, saveUserExtrasMe,
-  getProvinsi, getProvinsiById, getProvinsiOptions, saveProvinsi, deleteProvinsi,
-  getKota, getKotaById, getKotaOptions, saveKota, deleteKota,
-  getKecamatan, getKecamatanById, getKecamatanOptions, saveKecamatan, deleteKecamatan,
-  getKelurahan, getKelurahanById, getKelurahanOptions, saveKelurahan, deleteKelurahan,
-  getRw, getRwById, getRwOptions, saveRw, deleteRw,
-  getRt, getRtById, getRtOptions, saveRt, deleteRt
+  getProvinsi,
+  getProvinsiByKode, getProvinsiByKodeCapil, saveProvinsi, deleteProvinsi,
+  getKota,
+  getKotaByKode, getKotaByKodeCapil, getKotaOptionsProvinsi, saveKota, deleteKota,
+  getKecamatan,
+  getKecamatanByKode, getKecamatanByKodeCapil, getKecamatanOptionsKota, saveKecamatan, deleteKecamatan,
+  getKelurahan,
+  getKelurahanByKode, getKelurahanByKodeCapil, getKelurahanOptionsKecamatan, saveKelurahan, deleteKelurahan,
+  getRw,
+  getRwByKode, getRwOptionsKelurahan, saveRw, deleteRw,
+  getRt,
+  getRtByKode, getRtOptionsRw, saveRt, deleteRt,
+  getKader,
+  getKaderByNoKader, saveKader, deleteKader, getKaderOptionsPetugas,
+  getKaderOptionsKota, getKaderOptionsKecamatan, getKaderOptionsKelurahan, getKaderOptionsRw, getKaderOptionsRt,
+  getPetugas,
+  getPetugasByNik, savePetugas, deletePetugas,
+  getKelompok,
+  getKelompokById, saveKelompok, deleteKelompok
 }
 
 // UserExtras
-function getUserExtrasMe(token) {
+function getUserExtrasMe (token) {
   return instance.get(`/api/userextras/me`, {
-    headers: {'Authorization': bearerAuth(token)}
+    headers: { 'Authorization': bearerAuth(token) }
   })
 }
 
-function saveUserExtrasMe(token, userExtra) {
+function saveUserExtrasMe (token, userExtra) {
   return instance.post(`/api/userextras/me`, userExtra, {
-    headers: {'Authorization': bearerAuth(token)}
+    headers: { 'Authorization': bearerAuth(token) }
   })
 }
 
 // Provinsi
-function getProvinsi(token, page, size, sortBy, direction, filter) {
+function getProvinsi (token, page, size, sortBy, direction, filter) {
   return instance.get('/api/provinsi', {
     headers: {
       'Content-type': 'application/json',
@@ -41,8 +54,8 @@ function getProvinsi(token, page, size, sortBy, direction, filter) {
   })
 }
 
-function getProvinsiById(idProvinsi, token) {
-  return instance.get(`/api/provinsi/${idProvinsi}`, {
+function getProvinsiByKode (kodeProvinsi, token) {
+  return instance.get(`/api/provinsi/${kodeProvinsi}`, {
     headers: {
       'Content-type': 'application/json',
       'Authorization': bearerAuth(token)
@@ -50,8 +63,8 @@ function getProvinsiById(idProvinsi, token) {
   })
 }
 
-function getProvinsiOptions(token) {
-  return instance.get(`/api/provinsi/options`, {
+function getProvinsiByKodeCapil (kodeProvinsiCapil, token) {
+  return instance.get(`/api/provinsi/kode-capil/${kodeProvinsiCapil}`, {
     headers: {
       'Content-type': 'application/json',
       'Authorization': bearerAuth(token)
@@ -59,7 +72,7 @@ function getProvinsiOptions(token) {
   })
 }
 
-function saveProvinsi(provinsi, token) {
+function saveProvinsi (provinsi, token) {
   return instance.post('/api/provinsi', provinsi, {
     headers: {
       'Content-type': 'application/json',
@@ -68,14 +81,14 @@ function saveProvinsi(provinsi, token) {
   })
 }
 
-function deleteProvinsi(idProvinsi, token) {
+function deleteProvinsi (idProvinsi, token) {
   return instance.delete(`/api/provinsi/${idProvinsi}`, {
-    headers: {'Authorization': bearerAuth(token)}
+    headers: { 'Authorization': bearerAuth(token) }
   })
 }
 
 // Kota
-function getKota(token, page, size, sortBy, direction, filterProvinsi, filter) {
+function getKota (token, page, size, sortBy, direction, filterProvinsi, filter) {
   return instance.get('/api/kota', {
     headers: {
       'Content-type': 'application/json',
@@ -92,8 +105,8 @@ function getKota(token, page, size, sortBy, direction, filterProvinsi, filter) {
   })
 }
 
-function getKotaById(idKota, token) {
-  return instance.get(`/api/kota/${idKota}`, {
+function getKotaByKode (kodeKota, token) {
+  return instance.get(`/api/kota/${kodeKota}`, {
     headers: {
       'Content-type': 'application/json',
       'Authorization': bearerAuth(token)
@@ -101,8 +114,8 @@ function getKotaById(idKota, token) {
   })
 }
 
-function getKotaOptions(token) {
-  return instance.get(`/api/kota/options`, {
+function getKotaByKodeCapil (kodeKotaCapil, token) {
+  return instance.get(`/api/kota/kode-capil/${kodeKotaCapil}`, {
     headers: {
       'Content-type': 'application/json',
       'Authorization': bearerAuth(token)
@@ -110,7 +123,16 @@ function getKotaOptions(token) {
   })
 }
 
-function saveKota(kota, token) {
+function getKotaOptionsProvinsi (token) {
+  return instance.get(`/api/kota/options-provinsi`, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function saveKota (kota, token) {
   return instance.post('/api/kota', kota, {
     headers: {
       'Content-type': 'application/json',
@@ -119,14 +141,14 @@ function saveKota(kota, token) {
   })
 }
 
-function deleteKota(idKota, token) {
+function deleteKota (idKota, token) {
   return instance.delete(`/api/kota/${idKota}`, {
-    headers: {'Authorization': bearerAuth(token)}
+    headers: { 'Authorization': bearerAuth(token) }
   })
 }
 
 // Kecamatan
-function getKecamatan(token, page, size, sortBy, direction, filterKota, filter) {
+function getKecamatan (token, page, size, sortBy, direction, filterKota, filter) {
   return instance.get('/api/kecamatan', {
     headers: {
       'Content-type': 'application/json',
@@ -143,8 +165,8 @@ function getKecamatan(token, page, size, sortBy, direction, filterKota, filter) 
   })
 }
 
-function getKecamatanById(idKecamatan, token) {
-  return instance.get(`/api/kecamatan/${idKecamatan}`, {
+function getKecamatanByKode (kodeKecamatan, token) {
+  return instance.get(`/api/kecamatan/${kodeKecamatan}`, {
     headers: {
       'Content-type': 'application/json',
       'Authorization': bearerAuth(token)
@@ -152,8 +174,8 @@ function getKecamatanById(idKecamatan, token) {
   })
 }
 
-function getKecamatanOptions(token) {
-  return instance.get(`/api/kecamatan/options`, {
+function getKecamatanByKodeCapil (kodeKecamatanCapil, token) {
+  return instance.get(`/api/kecamatan/kode-capil/${kodeKecamatanCapil}`, {
     headers: {
       'Content-type': 'application/json',
       'Authorization': bearerAuth(token)
@@ -161,7 +183,16 @@ function getKecamatanOptions(token) {
   })
 }
 
-function saveKecamatan(kecamatan, token) {
+function getKecamatanOptionsKota (token) {
+  return instance.get(`/api/kecamatan/options-kota`, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function saveKecamatan (kecamatan, token) {
   return instance.post('/api/kecamatan', kecamatan, {
     headers: {
       'Content-type': 'application/json',
@@ -170,14 +201,14 @@ function saveKecamatan(kecamatan, token) {
   })
 }
 
-function deleteKecamatan(idKecamatan, token) {
+function deleteKecamatan (idKecamatan, token) {
   return instance.delete(`/api/kecamatan/${idKecamatan}`, {
-    headers: {'Authorization': bearerAuth(token)}
+    headers: { 'Authorization': bearerAuth(token) }
   })
 }
 
 // Kelurahan
-function getKelurahan(token, page, size, sortBy, direction, filterKecamatan, filter) {
+function getKelurahan (token, page, size, sortBy, direction, filterKecamatan, filter) {
   return instance.get('/api/kelurahan', {
     headers: {
       'Content-type': 'application/json',
@@ -194,8 +225,8 @@ function getKelurahan(token, page, size, sortBy, direction, filterKecamatan, fil
   })
 }
 
-function getKelurahanById(idKelurahan, token) {
-  return instance.get(`/api/kelurahan/${idKelurahan}`, {
+function getKelurahanByKode (kodeKelurahan, token) {
+  return instance.get(`/api/kelurahan/${kodeKelurahan}`, {
     headers: {
       'Content-type': 'application/json',
       'Authorization': bearerAuth(token)
@@ -203,8 +234,8 @@ function getKelurahanById(idKelurahan, token) {
   })
 }
 
-function getKelurahanOptions(token) {
-  return instance.get(`/api/kelurahan/options`, {
+function getKelurahanByKodeCapil (kodeKelurahanCapil, token) {
+  return instance.get(`/api/kelurahan/kode-capil/${kodeKelurahanCapil}`, {
     headers: {
       'Content-type': 'application/json',
       'Authorization': bearerAuth(token)
@@ -212,7 +243,16 @@ function getKelurahanOptions(token) {
   })
 }
 
-function saveKelurahan(kelurahan, token) {
+function getKelurahanOptionsKecamatan (token) {
+  return instance.get(`/api/kelurahan/options-kecamatan`, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function saveKelurahan (kelurahan, token) {
   return instance.post('/api/kelurahan', kelurahan, {
     headers: {
       'Content-type': 'application/json',
@@ -221,14 +261,14 @@ function saveKelurahan(kelurahan, token) {
   })
 }
 
-function deleteKelurahan(idKelurahan, token) {
+function deleteKelurahan (idKelurahan, token) {
   return instance.delete(`/api/kelurahan/${idKelurahan}`, {
-    headers: {'Authorization': bearerAuth(token)}
+    headers: { 'Authorization': bearerAuth(token) }
   })
 }
 
 // RW
-function getRw(token, page, size, sortBy, direction, filterKelurahan, filter) {
+function getRw (token, page, size, sortBy, direction, filterKelurahan, filter) {
   return instance.get('/api/rw', {
     headers: {
       'Content-type': 'application/json',
@@ -245,8 +285,8 @@ function getRw(token, page, size, sortBy, direction, filterKelurahan, filter) {
   })
 }
 
-function getRwById(idRw, token) {
-  return instance.get(`/api/rw/${idRw}`, {
+function getRwByKode (kodeRw, token) {
+  return instance.get(`/api/rw/${kodeRw}`, {
     headers: {
       'Content-type': 'application/json',
       'Authorization': bearerAuth(token)
@@ -254,8 +294,8 @@ function getRwById(idRw, token) {
   })
 }
 
-function getRwOptions(token) {
-  return instance.get(`/api/rw/options`, {
+function getRwOptionsKelurahan (token) {
+  return instance.get(`/api/rw/options-kelurahan`, {
     headers: {
       'Content-type': 'application/json',
       'Authorization': bearerAuth(token)
@@ -263,7 +303,7 @@ function getRwOptions(token) {
   })
 }
 
-function saveRw(rw, token) {
+function saveRw (rw, token) {
   return instance.post('/api/rw', rw, {
     headers: {
       'Content-type': 'application/json',
@@ -272,14 +312,14 @@ function saveRw(rw, token) {
   })
 }
 
-function deleteRw(idRw, token) {
+function deleteRw (idRw, token) {
   return instance.delete(`/api/rw/${idRw}`, {
-    headers: {'Authorization': bearerAuth(token)}
+    headers: { 'Authorization': bearerAuth(token) }
   })
 }
 
 // RT
-function getRt(token, page, size, sortBy, direction, filterRw, filter) {
+function getRt (token, page, size, sortBy, direction, filterRw, filter) {
   return instance.get('/api/rt', {
     headers: {
       'Content-type': 'application/json',
@@ -296,8 +336,8 @@ function getRt(token, page, size, sortBy, direction, filterRw, filter) {
   })
 }
 
-function getRtById(idRt, token) {
-  return instance.get(`/api/rt/${idRt}`, {
+function getRtByKode (kodeRt, token) {
+  return instance.get(`/api/rt/${kodeRt}`, {
     headers: {
       'Content-type': 'application/json',
       'Authorization': bearerAuth(token)
@@ -305,8 +345,8 @@ function getRtById(idRt, token) {
   })
 }
 
-function getRtOptions(token) {
-  return instance.get(`/api/rt/options`, {
+function getRtOptionsRw (token) {
+  return instance.get(`/api/rt/options-rw`, {
     headers: {
       'Content-type': 'application/json',
       'Authorization': bearerAuth(token)
@@ -314,7 +354,7 @@ function getRtOptions(token) {
   })
 }
 
-function saveRt(rt, token) {
+function saveRt (rt, token) {
   return instance.post('/api/rt', rt, {
     headers: {
       'Content-type': 'application/json',
@@ -323,9 +363,189 @@ function saveRt(rt, token) {
   })
 }
 
-function deleteRt(idRt, token) {
+function deleteRt (idRt, token) {
   return instance.delete(`/api/rt/${idRt}`, {
-    headers: {'Authorization': bearerAuth(token)}
+    headers: { 'Authorization': bearerAuth(token) }
+  })
+}
+
+// Kader (Ketua Dasawisma)
+function getKader (token, page, size, sortBy, direction, filterWilayah, filter) {
+  return instance.get('/api/kader', {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    },
+    params: {
+      'page': page,
+      'size': size,
+      'sortBy': sortBy,
+      'direction': direction,
+      'filterWilayah': filterWilayah,
+      'filter': filter
+    }
+  })
+}
+
+function getKaderByNoKader (noKader, token) {
+  return instance.get(`/api/kader/${noKader}`, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function getKaderOptionsKota (token) {
+  return instance.get(`/api/kader/options-kota`, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function getKaderOptionsKecamatan (kodeKota, token) {
+  return instance.get(`/api/kader/options-kecamatan/${kodeKota}`, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function getKaderOptionsKelurahan (kodeKecamatan, token) {
+  return instance.get(`/api/kader/options-kelurahan/${kodeKecamatan}`, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function getKaderOptionsRw (kodeKelurahan, token) {
+  return instance.get(`/api/kader/options-rw/${kodeKelurahan}`, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function getKaderOptionsRt (kodeRw, token) {
+  return instance.get(`/api/kader/options-rt/${kodeRw}`, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function getKaderOptionsPetugas (kodeRt, token) {
+  return instance.get(`/api/kader/options-petugas/${kodeRt}`, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function saveKader (kader, token) {
+  return instance.post('/api/kader', kader, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function deleteKader (idKader, token) {
+  return instance.delete(`/api/kader/${idKader}`, {
+    headers: { 'Authorization': bearerAuth(token) }
+  })
+}
+
+// Petugas
+function getPetugas (token, page, size, sortBy, direction, filterWilayah, filter) {
+  return instance.get('/api/petugas', {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    },
+    params: {
+      'page': page,
+      'size': size,
+      'sortBy': sortBy,
+      'direction': direction,
+      'filterWilayah': filterWilayah,
+      'filter': filter
+    }
+  })
+}
+
+function getPetugasByNik (nik, token) {
+  return instance.get(`/api/petugas/${nik}`, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function savePetugas (petugas, token) {
+  return instance.post('/api/petugas', petugas, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function deletePetugas (nik, token) {
+  return instance.delete(`/api/petugas/${nik}`, {
+    headers: { 'Authorization': bearerAuth(token) }
+  })
+}
+
+// Kelompok
+function getKelompok (token, page, size, sortBy, direction, filterWilayah, filter) {
+  return instance.get('/api/kelompok', {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    },
+    params: {
+      'page': page,
+      'size': size,
+      'sortBy': sortBy,
+      'direction': direction,
+      'filterWilayah': filterWilayah,
+      'filter': filter
+    }
+  })
+}
+
+function getKelompokById (idKelompok, token) {
+  return instance.get(`/api/kelompok/${idKelompok}`, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function saveKelompok (kelompok, token) {
+  return instance.post('/api/kelompok', kelompok, {
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': bearerAuth(token)
+    }
+  })
+}
+
+function deleteKelompok (idKelompok, token) {
+  return instance.delete(`/api/kelompok/${idKelompok}`, {
+    headers: { 'Authorization': bearerAuth(token) }
   })
 }
 
@@ -335,15 +555,15 @@ const instance = axios.create({
 })
 
 instance.interceptors.response.use(response => {
-  return response;
+  return response
 }, function (error) {
   if (error.response.status === 404) {
-    return {status: error.response.status};
+    return { status: error.response.status }
   }
-  return Promise.reject(error.response);
-});
+  return Promise.reject(error.response)
+})
 
 // -- Helper functions
-function bearerAuth(token) {
+function bearerAuth (token) {
   return `Bearer ${token}`
 }

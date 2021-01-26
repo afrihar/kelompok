@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button, Modal } from 'semantic-ui-react'
 
-function ConfirmationModal({ modal }) {
+function ConfirmationModal ({ modal }) {
   const { isOpen, header, content, onClose, onAction } = modal
   return (
     <Modal size='tiny' open={isOpen} onClose={onClose}>

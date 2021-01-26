@@ -1,5 +1,6 @@
 package id.dasawisma.kelompokapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -16,5 +17,6 @@ public class OptionAgama {
   @NotBlank(message = "Label Agama harus diisi.")
   private String labelAgama;
   @Embedded
+  @JsonIgnore
   private AuditMaster auditMaster = new AuditMaster();
 }

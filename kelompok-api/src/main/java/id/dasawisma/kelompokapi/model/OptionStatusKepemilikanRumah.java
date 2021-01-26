@@ -1,5 +1,6 @@
 package id.dasawisma.kelompokapi.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -16,5 +17,6 @@ public class OptionStatusKepemilikanRumah {
   @NotBlank(message = "Label Status Kepemilikan Rumah harus diisi.")
   private String labelStatusKepemilikanRumah;
   @Embedded
+  @JsonIgnore
   private AuditMaster auditMaster = new AuditMaster();
 }

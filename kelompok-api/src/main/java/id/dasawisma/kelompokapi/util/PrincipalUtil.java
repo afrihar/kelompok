@@ -1,6 +1,6 @@
 package id.dasawisma.kelompokapi.util;
 
-import id.dasawisma.kelompokapi.security.WebSecurityConfig;
+import id.dasawisma.kelompokapi.config.WebSecurityConfig;
 import org.keycloak.adapters.RefreshableKeycloakSecurityContext;
 import org.keycloak.adapters.springsecurity.account.SimpleKeycloakAccount;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
