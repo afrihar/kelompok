@@ -1,0 +1,44 @@
+{
+  "properties": [
+    {
+      "name": "kelompok.allowed-origins",
+      "type": "java.lang.String",
+      "description": "Konfigurasi url origin Frontend."
+    },
+    {
+      "name": "kelompok.username-test",
+      "type": "java.lang.String",
+      "description": "Konfigurasi username untuk test login ke realm SIMPKK."
+    },
+    {
+      "name": "kelompok.password-test",
+      "type": "java.lang.String",
+      "description": "Konfigurasi password untuk test login ke realm SIMPKK."
+    },
+    {
+      "name": "kelompok.soa-app",
+      "type": "java.lang.String",
+      "description": "Description for kelompok.soa-app."
+    },
+    {
+      "name": "kelompok.soa-pget",
+      "type": "java.lang.String",
+      "description": "Description for kelompok.soa-pget."
+    },
+    {
+      "name": "kelompok.soa-pusr",
+      "type": "java.lang.String",
+      "description": "Description for kelompok.soa-pusr."
+    },
+    {
+      "name": "kelompok.soa-auth-user",
+      "type": "java.lang.String",
+      "description": "Description for kelompok.soa-auth-user."
+    },
+    {
+      "name": "kelompok.soa-auth-pass",
+      "type": "java.lang.String",
+      "description": "Description for kelompok.soa-auth-pass."
+    }
+  ]
+}
