@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { withKeycloak } from "@react-keycloak/web";
 import {
   alphanumeric,
   handleLogError,
@@ -11,8 +12,11 @@ import {
   isRw,
   itemPerPage
 } from "../../util/Helpers";
+import { kelompokApi } from "../../util/KelompokApi";
+import debounce from "lodash.debounce";
 import { Redirect } from "react-router-dom";
 import {
+  Button,
   Container,
   Dropdown,
   Grid,
@@ -26,15 +30,12 @@ import {
   Popup,
   Table
 } from "semantic-ui-react";
-import { withKeycloak } from "@react-keycloak/web";
-import { kelompokApi } from "../../util/KelompokApi";
-import debounce from "lodash.debounce";
 
-class Petugas extends Component {
+class PetugasDomisili extends Component {
   state = {
     size: 10,
     direction: "ASC",
-    sortBy: "nik",
+    sortBy: "rtDomisili_KodeRt",
     filterValid: true,
     isLoadingPage: false,
     isLoadingSearch: false,
@@ -47,26 +48,26 @@ class Petugas extends Component {
       const { keycloak } = this.props;
       let getPetugasOptions;
       if (isPusdatin(keycloak) || isProvinsi(keycloak)) {
-        getPetugasOptions = await kelompokApi.getPetugasOptionsKotaTugas(
+        getPetugasOptions = await kelompokApi.getPetugasOptionsKotaDomisili(
           keycloak.token
         );
       } else if (isKota(keycloak)) {
-        getPetugasOptions = await kelompokApi.getPetugasOptionsKecamatanTugas(
+        getPetugasOptions = await kelompokApi.getPetugasOptionsKecamatanDomisili(
           keycloak.tokenParsed["kode_wilayah"],
           keycloak.token
         );
       } else if (isKecamatan(keycloak)) {
-        getPetugasOptions = await kelompokApi.getPetugasOptionsKelurahanTugas(
+        getPetugasOptions = await kelompokApi.getPetugasOptionsKelurahanDomisili(
           keycloak.tokenParsed["kode_wilayah"],
           keycloak.token
         );
       } else if (isKelurahan(keycloak)) {
-        getPetugasOptions = await kelompokApi.getPetugasOptionsRwTugas(
+        getPetugasOptions = await kelompokApi.getPetugasOptionsRwDomisili(
           keycloak.tokenParsed["kode_wilayah"],
           keycloak.token
         );
       } else if (isRw(keycloak)) {
-        getPetugasOptions = await kelompokApi.getPetugasOptionsRtTugas(
+        getPetugasOptions = await kelompokApi.getPetugasOptionsRtDomisili(
           keycloak.tokenParsed["kode_wilayah"],
           keycloak.token
         );
@@ -87,7 +88,7 @@ class Petugas extends Component {
     try {
       const { keycloak } = this.props;
       const { size, sortBy, direction, filterWilayah, filter } = this.state;
-      const response = await kelompokApi.getPetugas(
+      const response = await kelompokApi.getPetugasDomisili(
         keycloak.token,
         1,
         size,
@@ -113,7 +114,7 @@ class Petugas extends Component {
       const { size, sortBy, direction, filterWilayah } = this.state;
       if (filter) {
         try {
-          const response = await kelompokApi.getPetugas(
+          const response = await kelompokApi.getPetugasDomisili(
             keycloak.token,
             1,
             size,
@@ -139,7 +140,7 @@ class Petugas extends Component {
     const { keycloak } = this.props;
     try {
       const { sortBy, direction, filterWilayah, filter } = this.state;
-      const response = await kelompokApi.getPetugas(
+      const response = await kelompokApi.getPetugasDomisili(
         keycloak.token,
         1,
         value,
@@ -160,7 +161,7 @@ class Petugas extends Component {
     const { keycloak } = this.props;
     const { size, sortBy, direction, filterWilayah, filter } = this.state;
     try {
-      const response = await kelompokApi.getPetugas(
+      const response = await kelompokApi.getPetugasDomisili(
         keycloak.token,
         activePage,
         size,
@@ -182,7 +183,7 @@ class Petugas extends Component {
     const { size, sortBy, direction, filter } = this.state;
     if (value !== "") {
       try {
-        const response = await kelompokApi.getPetugas(
+        const response = await kelompokApi.getPetugasDomisili(
           keycloak.token,
           1,
           size,
@@ -198,7 +199,7 @@ class Petugas extends Component {
       }
     } else {
       try {
-        const response = await kelompokApi.getPetugas(
+        const response = await kelompokApi.getPetugasDomisili(
           keycloak.token,
           1,
           size,
@@ -245,7 +246,7 @@ class Petugas extends Component {
       return (
         <Container className="isi">
           <Header as="h1" textAlign="center">
-            Petugas Berdasarkan Wilayah Tugas
+            Petugas Berdasarkan Domisili
           </Header>
           <Grid columns="equal" verticalAlign="middle">
             <GridRow>
@@ -275,7 +276,7 @@ class Petugas extends Component {
                     clearable
                     fluid
                     options={petugasOptions}
-                    placeholder="Filter Petugas By Wilayah Tugas"
+                    placeholder="Filter Petugas By Domisili"
                     onChange={this.handleOptionsChange}
                     search
                     selection
@@ -317,12 +318,12 @@ class Petugas extends Component {
                     <Label ribbon>NIK</Label>
                   </Table.Cell>
                   <Table.HeaderCell>Nama</Table.HeaderCell>
-                  <Table.HeaderCell>RT Tugas</Table.HeaderCell>
-                  <Table.HeaderCell>RW Tugas</Table.HeaderCell>
                   <Table.HeaderCell>Alamat Domisili</Table.HeaderCell>
                   <Table.HeaderCell>RT Domisili</Table.HeaderCell>
                   <Table.HeaderCell>RW Domisili</Table.HeaderCell>
                   <Table.HeaderCell>Kelurahan Domisili</Table.HeaderCell>
+                  <Table.HeaderCell>RT Tugas</Table.HeaderCell>
+                  <Table.HeaderCell>RW Tugas</Table.HeaderCell>
                   <Table.HeaderCell>Tanggal Lahir</Table.HeaderCell>
                 </Table.Row>
               </Table.Header>
@@ -332,26 +333,10 @@ class Petugas extends Component {
                     <Table.Row
                       key={petugas.nik}
                       onClick={() => {
-                        this.props.history.push(`/petugas/${petugas.nik}`);
+                        this.props.history.push(`/petugas-domisili/${petugas.nik}`);
                       }}>
                       <Table.Cell>{petugas.nik}</Table.Cell>
                       <Table.Cell>{petugas.nama}</Table.Cell>
-                      {petugas.rtTugas ? (
-                        <Table.Cell>{petugas.rtTugas.labelRt}</Table.Cell>
-                      ) : (
-                        <Table.Cell textAlign="center" error>
-                          {" "}
-                          <Icon name="attention" />
-                        </Table.Cell>
-                      )}
-                      {petugas.rtTugas ? (
-                        <Table.Cell>{petugas.rtTugas.rw.labelRw}</Table.Cell>
-                      ) : (
-                        <Table.Cell textAlign="center" error>
-                          {" "}
-                          <Icon name="attention" />
-                        </Table.Cell>
-                      )}
                       <Table.Cell>{petugas.alamatDomisili}</Table.Cell>
                       {petugas.rtDomisili ? (
                         <Table.Cell>{petugas.rtDomisili.labelRt}</Table.Cell>
@@ -379,6 +364,22 @@ class Petugas extends Component {
                           <Icon name="attention" />
                         </Table.Cell>
                       )}
+                      {petugas.rtTugas ? (
+                        <Table.Cell>{petugas.rtTugas.labelRt}</Table.Cell>
+                      ) : (
+                        <Table.Cell textAlign="center" error>
+                          {" "}
+                          <Icon name="attention" />
+                        </Table.Cell>
+                      )}
+                      {petugas.rtTugas ? (
+                        <Table.Cell>{petugas.rtTugas.rw.labelRw}</Table.Cell>
+                      ) : (
+                        <Table.Cell textAlign="center" error>
+                          {" "}
+                          <Icon name="attention" />
+                        </Table.Cell>
+                      )}
                       {petugas.tanggalLahir ? (
                         <Table.Cell>
                           {new Date(petugas.tanggalLahir).toDateString()}
@@ -398,6 +399,11 @@ class Petugas extends Component {
               <Table.Footer fullWidth>
                 <Table.Row>
                   <Table.HeaderCell colSpan="3">
+                    <Button
+                      onClick={() => this.props.history.push("/petugas-tambah")}
+                      icon labelPosition="left" primary size="small">
+                      <Icon name="add" /> Petugas
+                    </Button>
                   </Table.HeaderCell>
                   <Table.HeaderCell colSpan="6">
                     {responsePetugas.totalItems > 0 &&
@@ -442,4 +448,4 @@ class Petugas extends Component {
   }
 }
 
-export default withKeycloak(Petugas);
+export default withKeycloak(PetugasDomisili);

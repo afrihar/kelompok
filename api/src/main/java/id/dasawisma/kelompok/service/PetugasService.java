@@ -18,6 +18,10 @@ public class PetugasService {
     return petugasRepository.findAll(petugasSpecification, paging);
   }
 
+  public Iterable<Petugas> findAllByRtTugas_KodeRtStartingWithOrderByNamaAsc(String kodeRt) {
+    return petugasRepository.findAllByRtTugas_KodeRtStartingWithOrderByNamaAsc(kodeRt);
+  }
+
   public Petugas findByNik(String nik) {
     Petugas petugas = petugasRepository.findByNik(nik);
     if (petugas == null) {

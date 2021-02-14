@@ -98,40 +98,50 @@ public class MasterRtController {
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
   @GetMapping("/options-rw")
   public ResponseEntity<?> getOptionsRw() {
-    Iterable<MasterRw> masterRw;
-    if (PrincipalUtil.isPusdatin()) {
+    Iterable<MasterRw> masterRw = null;
+    if (PrincipalUtil.isPusdatin())
       masterRw = rwService.findAllByOrderByKelurahan_NamaKelurahanAscLabelRwAsc();
-    } else {
-      masterRw = rwService.findAllByKodeRwStartingWithOrderByKelurahan_NamaKelurahanAscLabelRwAsc(PrincipalUtil.getKodeWilayah());
-    }
+    else if (PrincipalUtil.isProvinsi() || PrincipalUtil.isKota() || PrincipalUtil.isKecamatan())
+      masterRw = rwService.findAllByKelurahan_KodeKelurahanStartingWithOrderByKelurahan_NamaKelurahanAscLabelRwAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isKelurahan())
+      masterRw = rwService.findAllByKelurahan_KodeKelurahanOrderByKelurahan_NamaKelurahanAscLabelRwAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isRw())
+      masterRw = rwService.findAllByKodeRw(PrincipalUtil.getKodeWilayah());
     List<Map<String, Object>> response = new ArrayList<>();
-    masterRw.forEach(rw -> {
-      Map<String, Object> map = new HashMap<>();
-      map.put("key", rw.getKodeRw());
-      map.put("value", rw.getKodeRw());
-      map.put("text", rw.getKelurahan().getNamaKelurahan() + " - RW " + rw.getLabelRw());
-      response.add(map);
-    });
+    if (masterRw != null) {
+      masterRw.forEach(rw -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", rw.getKodeRw());
+        map.put("value", rw.getKodeRw());
+        map.put("text", rw.getKelurahan().getNamaKelurahan() + " - RW " + rw.getLabelRw());
+        response.add(map);
+      });
+    }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
   @GetMapping("/options-rt")
   public ResponseEntity<?> getOptionsRt() {
-    Iterable<MasterRt> masterRt;
-    if (PrincipalUtil.isPusdatin()) {
+    Iterable<MasterRt> masterRt = null;
+    if (PrincipalUtil.isPusdatin())
       masterRt = rtService.findAllByOrderByRw_KodeRwAscLabelRtAsc();
-    } else {
-      masterRt = rtService.findAllByKodeRtStartingWithOrderByRw_KodeRwAscKodeRtAsc(PrincipalUtil.getKodeWilayah());
-    }
+    else if (PrincipalUtil.isProvinsi() || PrincipalUtil.isKota() || PrincipalUtil.isKecamatan() || PrincipalUtil.isKelurahan())
+      masterRt = rtService.findAllByRw_KodeRwStartingWithOrderByRw_KodeRwAscKodeRtAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isRw())
+      masterRt = rtService.findAllByRw_KodeRwOrderByRw_KodeRwAscKodeRtAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isRt())
+      masterRt = rtService.findAllByKodeRt(PrincipalUtil.getKodeWilayah());
     List<Map<String, Object>> response = new ArrayList<>();
-    masterRt.forEach(rt -> {
-      Map<String, Object> map = new HashMap<>();
-      map.put("key", rt.getKodeRt());
-      map.put("value", rt.getKodeRt());
-      map.put("text", "RW " + rt.getRw().getLabelRw() + " - RT " + rt.getLabelRt());
-      response.add(map);
-    });
+    if (masterRt != null) {
+      masterRt.forEach(rt -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", rt.getKodeRt());
+        map.put("value", rt.getKodeRt());
+        map.put("text", "RW " + rt.getRw().getLabelRw() + " - RT " + rt.getLabelRt());
+        response.add(map);
+      });
+    }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

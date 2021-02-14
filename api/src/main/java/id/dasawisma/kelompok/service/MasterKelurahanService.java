@@ -22,8 +22,16 @@ public class MasterKelurahanService {
     return kelurahanRepository.findAllByOrderByNamaKelurahanAsc();
   }
 
-  public Iterable<MasterKelurahan> findAllByKodeKelurahanStartingWith(String kodeKelurahan) {
-    return kelurahanRepository.findAllByKodeKelurahanStartingWith(kodeKelurahan);
+  public Iterable<MasterKelurahan> findAllByKecamatan_KodeKecamatanStartingWithOrderByNamaKelurahan(String kodeKecamatan) {
+    return kelurahanRepository.findAllByKecamatan_KodeKecamatanStartingWithOrderByNamaKelurahan(kodeKecamatan);
+  }
+
+  public Iterable<MasterKelurahan> findAllByKecamatan_KodeKecamatanOrderByNamaKelurahan(String kodeKecamatan) {
+    return kelurahanRepository.findAllByKecamatan_KodeKecamatanOrderByNamaKelurahan(kodeKecamatan);
+  }
+
+  public Iterable<MasterKelurahan> findAllByKodeKelurahan(String kodeKelurahan) {
+    return kelurahanRepository.findAllByKodeKelurahan(kodeKelurahan);
   }
 
   public MasterKelurahan findByKode(String kodeKelurahan) {

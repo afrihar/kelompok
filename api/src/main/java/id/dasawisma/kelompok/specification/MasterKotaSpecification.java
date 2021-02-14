@@ -29,7 +29,7 @@ public class MasterKotaSpecification implements Specification<MasterKota> {
   }
 
   private Predicate buildFilterByPrincipal(Root<MasterKota> root, CriteriaBuilder cb) {
-    return cb.like(root.get("kodeKota"), PrincipalUtil.getKodeWilayah() + "%");
+    return cb.equal(root.get("provinsi").get("kodeProvinsi"), PrincipalUtil.getKodeProvinsi());
   }
 
   private void getAllKota(Root<MasterKota> root, CriteriaBuilder cb, Predicate predicate) {

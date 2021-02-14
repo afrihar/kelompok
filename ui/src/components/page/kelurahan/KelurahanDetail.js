@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { withKeycloak } from "@react-keycloak/web";
-import { Button, Container, Form, Header } from "semantic-ui-react";
+import { Button, Container, Divider, Form, Header, Icon, Segment } from "semantic-ui-react";
 import { kelompokApi } from "../../util/KelompokApi";
 import { handleLogError, isKecamatan, isKota, isProvinsi, isPusdatin } from "../../util/Helpers";
 import { Redirect } from "react-router-dom";
@@ -310,6 +310,14 @@ class KelurahanDetail extends Component {
     };
     this.setState({ modal, deleteKelurahan: kelurahan });
   };
+  handleClickBack = () => this.props.history.push("/kelurahan");
+  handleKeyPressBack = (e) => {
+    if (e.charCode === 32 || e.charCode === 13) {
+      // Prevent the default action to stop scrolling when space is pressed
+      e.preventDefault();
+      this.props.history.push("/kelurahan");
+    }
+  };
 
   render() {
     const { keycloak } = this.props;
@@ -328,86 +336,97 @@ class KelurahanDetail extends Component {
     ) {
       return (
         <Container className="isi" text>
-          <Header as="h1" textAlign="center">
-            Tambah Kelurahan
-          </Header>
+          {this.props.match.params.kodeKelurahan === "tambah" ? (
+            <Header as="h1" textAlign="center"> Tambah Kelurahan </Header>
+          ) : (
+            <Header as="h1" textAlign="center"> {form.namaKelurahan} </Header>
+          )}
+          <Button animated basic color="grey" onClick={this.handleClickBack} onKeyPress={this.handleKeyPressBack}>
+            <Button.Content hidden>Kembali</Button.Content>
+            <Button.Content visible>
+              <Icon name="arrow left" />
+            </Button.Content>
+          </Button>
+          <Divider />
           <Form loading={isLoadingForm}>
-            <Form.Field required>
-              <label>Kecamatan</label>
-              <Form.Dropdown
-                placeholder="Kecamatan"
-                noResultsMessage="Tidak ada nama Kecamatan..."
-                onChange={this.handleChangeDropdown}
-                search
-                disabled={readOnly}
-                options={kecamatanOptions}
-                error={form.kecamatanError}
-                selection
-                clearable
-                value={
-                  form.kecamatan.kodeKecamatan === ""
-                    ? undefined
-                    : form.kecamatan.kodeKecamatan
-                }
-              />
-            </Form.Field>
-            <Form.Field required>
-              <label>Kode Kelurahan (Tidak Dapat Diubah)</label>
-              <Form.Input
-                fluid
-                readOnly={readOnly}
-                placeholder="Kode Kelurahan"
-                maxLength="9"
-                id="kodeKelurahan"
-                error={form.kodeKelurahanError}
-                onChange={this.handleChangeNumber}
-                value={form.kodeKelurahan}
-              />
-            </Form.Field>
-            <Form.Field required>
-              <label>Kode Kelurahan (Kemendagri)</label>
-              <Form.Input
-                fluid
-                placeholder="Kode Kelurahan (Kemendagri)"
-                error={form.kodeKelurahanCapilError}
-                maxLength="10"
-                id="kodeKelurahanCapil"
-                onChange={this.handleChangeNumber}
-                value={form.kodeKelurahanCapil}
-              />
-            </Form.Field>
-            <Form.Field required>
-              <label>Nama Kelurahan</label>
-              <Form.Input
-                fluid
-                placeholder="Nama Kelurahan"
-                id="namaKelurahan"
-                error={form.namaKelurahanError}
-                onChange={this.handleChangeToUpperCase}
-                value={form.namaKelurahan}
-              />
-            </Form.Field>
-            <Form.Field>
-              <label>Kode Pos</label>
-              <Form.Input
-                fluid
-                placeholder="Kode Pos"
-                id="kodePos"
-                maxLength="5"
-                onChange={this.handleChangeNumber}
-                value={form.kodePos}
-              />
-            </Form.Field>
-            <Form.Field>
-              <label>Nama Kelompok Dasawisma</label>
-              <Form.Input
-                fluid
-                placeholder="Nama Kelompok"
-                id="namaKelompok"
-                onChange={this.handleChange}
-                value={form.namaKelompokKelurahan}
-              />
-            </Form.Field>
+            <Segment piled>
+              <Form.Field required>
+                <label>Kecamatan</label>
+                <Form.Dropdown
+                  placeholder="Kecamatan"
+                  noResultsMessage="Tidak ada nama Kecamatan..."
+                  onChange={this.handleChangeDropdown}
+                  search
+                  disabled={readOnly}
+                  options={kecamatanOptions}
+                  error={form.kecamatanError}
+                  selection
+                  clearable
+                  value={
+                    form.kecamatan.kodeKecamatan === ""
+                      ? undefined
+                      : form.kecamatan.kodeKecamatan
+                  }
+                />
+              </Form.Field>
+              <Form.Field required>
+                <label>Kode Kelurahan (Tidak Dapat Diubah)</label>
+                <Form.Input
+                  fluid
+                  readOnly={readOnly}
+                  placeholder="Kode Kelurahan"
+                  maxLength="9"
+                  id="kodeKelurahan"
+                  error={form.kodeKelurahanError}
+                  onChange={this.handleChangeNumber}
+                  value={form.kodeKelurahan}
+                />
+              </Form.Field>
+              <Form.Field required>
+                <label>Kode Kelurahan (Kemendagri)</label>
+                <Form.Input
+                  fluid
+                  placeholder="Kode Kelurahan (Kemendagri)"
+                  error={form.kodeKelurahanCapilError}
+                  maxLength="10"
+                  id="kodeKelurahanCapil"
+                  onChange={this.handleChangeNumber}
+                  value={form.kodeKelurahanCapil}
+                />
+              </Form.Field>
+              <Form.Field required>
+                <label>Nama Kelurahan</label>
+                <Form.Input
+                  fluid
+                  placeholder="Nama Kelurahan"
+                  id="namaKelurahan"
+                  error={form.namaKelurahanError}
+                  onChange={this.handleChangeToUpperCase}
+                  value={form.namaKelurahan}
+                />
+              </Form.Field>
+              <Form.Field>
+                <label>Kode Pos</label>
+                <Form.Input
+                  fluid
+                  placeholder="Kode Pos"
+                  id="kodePos"
+                  maxLength="5"
+                  onChange={this.handleChangeNumber}
+                  value={form.kodePos}
+                />
+              </Form.Field>
+              <Form.Field>
+                <label>Nama Kelompok Dasawisma</label>
+                <Form.Input
+                  fluid
+                  placeholder="Nama Kelompok"
+                  id="namaKelompok"
+                  onChange={this.handleChange}
+                  value={form.namaKelompokKelurahan}
+                />
+              </Form.Field>
+            </Segment>
             {this.props.match.params.kodeKelurahan !== "tambah" ? (
               <Button
                 negative

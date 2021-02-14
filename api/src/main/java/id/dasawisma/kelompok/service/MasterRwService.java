@@ -18,8 +18,16 @@ public class MasterRwService {
     return rwRepository.findAll(rwSpecification, paging);
   }
 
-  public Iterable<MasterRw> findAllByKodeRwStartingWithOrderByKelurahan_NamaKelurahanAscLabelRwAsc(String kodeRw) {
-    return rwRepository.findAllByKodeRwStartingWithOrderByKelurahan_NamaKelurahanAscLabelRwAsc(kodeRw);
+  public Iterable<MasterRw> findAllByKelurahan_KodeKelurahanStartingWithOrderByKelurahan_NamaKelurahanAscLabelRwAsc(String kodeKelurahan) {
+    return rwRepository.findAllByKelurahan_KodeKelurahanStartingWithOrderByKelurahan_NamaKelurahanAscLabelRwAsc(kodeKelurahan);
+  }
+
+  public Iterable<MasterRw> findAllByKelurahan_KodeKelurahanOrderByKelurahan_NamaKelurahanAscLabelRwAsc(String kodeKelurahan) {
+    return rwRepository.findAllByKelurahan_KodeKelurahanOrderByKelurahan_NamaKelurahanAscLabelRwAsc(kodeKelurahan);
+  }
+
+  public Iterable<MasterRw> findAllByKodeRw(String kodeRw) {
+    return rwRepository.findAllByKodeRw(kodeRw);
   }
 
   public Iterable<MasterRw> findAllByOrderByKelurahan_NamaKelurahanAscLabelRwAsc() {
@@ -27,7 +35,7 @@ public class MasterRwService {
   }
 
   public MasterRw findByKode(String kodeRw) {
-    MasterRw masterRw = rwRepository.findByKodeRw(kodeRw);
+    MasterRw masterRw = rwRepository.findMasterRwByKodeRw(kodeRw);
     if (masterRw == null) {
       throw new ApiRequestException("Kode Rw '" + kodeRw + "' tidak tersedia");
     }

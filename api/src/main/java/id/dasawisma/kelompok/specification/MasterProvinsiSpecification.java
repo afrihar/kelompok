@@ -25,7 +25,7 @@ public class MasterProvinsiSpecification implements Specification<MasterProvinsi
   }
 
   private Predicate buildFilterByPrincipal(Root<MasterProvinsi> root, CriteriaBuilder cb) {
-    return cb.like(root.get("kodeProvinsi"), PrincipalUtil.getKodeWilayah() + "%");
+    return cb.equal(root.get("kodeProvinsi"), PrincipalUtil.getKodeProvinsi());
   }
 
   private void getAllProvinsi(Root<MasterProvinsi> root, CriteriaBuilder cb, Predicate predicate) {

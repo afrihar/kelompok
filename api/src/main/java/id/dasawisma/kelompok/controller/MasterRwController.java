@@ -98,20 +98,25 @@ public class MasterRwController {
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
   @GetMapping("/options-kelurahan")
   public ResponseEntity<?> getOptionsKelurahan() {
-    Iterable<MasterKelurahan> masterKelurahan;
-    if (PrincipalUtil.isPusdatin()) {
+    Iterable<MasterKelurahan> masterKelurahan = null;
+    if (PrincipalUtil.isPusdatin())
       masterKelurahan = kelurahanService.findAllByOrderByNamaKelurahanAsc();
-    } else {
-      masterKelurahan = kelurahanService.findAllByKodeKelurahanStartingWith(PrincipalUtil.getKodeWilayah());
-    }
+    else if (PrincipalUtil.isProvinsi() || PrincipalUtil.isKota())
+      masterKelurahan = kelurahanService.findAllByKecamatan_KodeKecamatanStartingWithOrderByNamaKelurahan(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isKecamatan())
+      masterKelurahan = kelurahanService.findAllByKecamatan_KodeKecamatanOrderByNamaKelurahan(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isKelurahan())
+      masterKelurahan = kelurahanService.findAllByKodeKelurahan(PrincipalUtil.getKodeWilayah());
     List<Map<String, Object>> response = new ArrayList<>();
-    masterKelurahan.forEach(kelurahan -> {
-      Map<String, Object> map = new HashMap<>();
-      map.put("key", kelurahan.getKodeKelurahan());
-      map.put("value", kelurahan.getKodeKelurahan());
-      map.put("text", kelurahan.getNamaKelurahan());
-      response.add(map);
-    });
+    if (masterKelurahan != null) {
+      masterKelurahan.forEach(kelurahan -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", kelurahan.getKodeKelurahan());
+        map.put("value", kelurahan.getKodeKelurahan());
+        map.put("text", kelurahan.getNamaKelurahan());
+        response.add(map);
+      });
+    }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

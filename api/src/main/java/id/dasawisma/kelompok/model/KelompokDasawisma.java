@@ -20,10 +20,10 @@ public class KelompokDasawisma {
   private String namaKelompok;
   @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
   @JoinColumn(name = "kode_rt_kelompok", referencedColumnName = "kode_rt", nullable = false)
-  private MasterRt rt;
-  @OneToOne(fetch = FetchType.EAGER, optional = false)
+  private MasterRt rtKelompok;
+  @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
   @JoinColumn(name = "nik_petugas", referencedColumnName = "nik")
-  private Petugas petugas;
+  private Petugas petugasKelompok;
   @Embedded
   @JsonIgnore
   private AuditMaster auditMaster = new AuditMaster();

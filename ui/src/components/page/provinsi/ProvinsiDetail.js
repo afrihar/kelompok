@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Button, Container, Form, Header } from "semantic-ui-react";
+import { Button, Container, Divider, Form, Header, Icon, Segment } from "semantic-ui-react";
 import { kelompokApi } from "../../util/KelompokApi";
 import { handleLogError, isPusdatin } from "../../util/Helpers";
 import { toast, ToastContainer } from "react-toastify";
@@ -15,21 +15,21 @@ class ProvinsiDetail extends Component {
     namaProvinsi: "",
     kodeProvinsiError: false,
     kodeProvinsiCapilError: false,
-    namaProvinsiError: false,
+    namaProvinsiError: false
   };
   modalInitialState = {
     isOpen: false,
     header: "",
     content: "",
     onAction: null,
-    onClose: null,
+    onClose: null
   };
   state = {
     modal: { ...this.modalInitialState },
     form: { ...this.formInitialState },
     deleteProvinsi: null,
     readOnly: true,
-    isLoadingForm: false,
+    isLoadingForm: false
   };
 
   async componentDidMount() {
@@ -51,7 +51,7 @@ class ProvinsiDetail extends Component {
           namaProvinsi: provinsi.namaProvinsi,
           kodeProvinsiError: false,
           kodeProvinsiCapilError: false,
-          namaProvinsiError: false,
+          namaProvinsiError: false
         };
         this.setState({ provinsi, form });
       } catch (error) {
@@ -74,13 +74,13 @@ class ProvinsiDetail extends Component {
       kodeProvinsiError = true;
       form.kodeProvinsiError = {
         pointing: "below",
-        content: "Kode Provinsi harus diisi",
+        content: "Kode Provinsi harus diisi"
       };
     } else if (form.kodeProvinsi.length !== 2) {
       kodeProvinsiError = true;
       form.kodeProvinsiError = {
         pointing: "below",
-        content: "Kode Provinsi harus 2 digit",
+        content: "Kode Provinsi harus 2 digit"
       };
     } else {
       if (this.props.match.params.kodeProvinsi === "tambah") {
@@ -96,7 +96,7 @@ class ProvinsiDetail extends Component {
             pointing: "below",
             content:
               "Kode Provinsi sudah terpakai oleh Provinsi " +
-              provinsi.namaProvinsi,
+              provinsi.namaProvinsi
           };
         } catch (error) {
           handleLogError(error);
@@ -109,13 +109,13 @@ class ProvinsiDetail extends Component {
       kodeProvinsiCapilError = true;
       form.kodeProvinsiCapilError = {
         pointing: "below",
-        content: "Kode Provinsi Kemendagri harus diisi",
+        content: "Kode Provinsi Kemendagri harus diisi"
       };
     } else if (form.kodeProvinsiCapil.length !== 2) {
       kodeProvinsiCapilError = true;
       form.kodeProvinsiCapilError = {
         pointing: "below",
-        content: "Kode Provinsi Kemendagri harus 2 digit",
+        content: "Kode Provinsi Kemendagri harus 2 digit"
       };
     } else {
       try {
@@ -131,7 +131,7 @@ class ProvinsiDetail extends Component {
             pointing: "below",
             content:
               "Kode Provinsi Capil sudah terpakai oleh Provinsi " +
-              provinsi.namaProvinsi,
+              provinsi.namaProvinsi
           };
         }
       } catch (error) {
@@ -144,7 +144,7 @@ class ProvinsiDetail extends Component {
       namaProvinsiError = true;
       form.namaProvinsiError = {
         pointing: "below",
-        content: "Nama Provinsi harus diisi",
+        content: "Nama Provinsi harus diisi"
       };
     }
     this.setState({ form });
@@ -170,7 +170,7 @@ class ProvinsiDetail extends Component {
         );
       } catch (error) {
         toast.error(error.request.response, {
-          onClose: () => this.setState({ isLoadingForm: false }),
+          onClose: () => this.setState({ isLoadingForm: false })
         });
         handleLogError(error);
       }
@@ -182,7 +182,7 @@ class ProvinsiDetail extends Component {
   handleCloseModal = () => {
     this.setState({
       modal: { ...this.modalInitialState },
-      isLoadingForm: false,
+      isLoadingForm: false
     });
   };
   handleChangeToUpperCase = (e) => {
@@ -236,9 +236,17 @@ class ProvinsiDetail extends Component {
       header: "Hapus Provinsi",
       content: `Apakah anda yakin akan menghapus Provinsi '${provinsi.namaProvinsi}'?`,
       onAction: this.handleActionModal,
-      onClose: this.handleCloseModal,
+      onClose: this.handleCloseModal
     };
     this.setState({ modal, deleteProvinsi: provinsi });
+  };
+  handleClickBack = () => this.props.history.push("/provinsi");
+  handleKeyPressBack = (e) => {
+    if (e.charCode === 32 || e.charCode === 13) {
+      // Prevent the default action to stop scrolling when space is pressed
+      e.preventDefault();
+      this.props.history.push("/provinsi");
+    }
   };
 
   render() {
@@ -247,46 +255,57 @@ class ProvinsiDetail extends Component {
     if (isPusdatin(keycloak)) {
       return (
         <Container className="isi" text>
-          <Header as="h1" textAlign="center">
-            Tambah Provinsi
-          </Header>
+          {this.props.match.params.kodeProvinsi === "tambah" ? (
+            <Header as="h1" textAlign="center"> Tambah Provinsi </Header>
+          ) : (
+            <Header as="h1" textAlign="center">PROVINSI {form.namaProvinsi} </Header>
+          )}
+          <Button animated basic color="grey" onClick={this.handleClickBack} onKeyPress={this.handleKeyPressBack}>
+            <Button.Content hidden>Kembali</Button.Content>
+            <Button.Content visible>
+              <Icon name="arrow left" />
+            </Button.Content>
+          </Button>
+          <Divider />
           <Form loading={isLoadingForm}>
-            <Form.Field required>
-              <label>Kode Provinsi (Tidak Dapat Diubah)</label>
-              <Form.Input
-                fluid
-                readOnly={readOnly}
-                placeholder="Kode Provinsi"
-                id="kodeProvinsi"
-                maxLength="2"
-                error={form.kodeProvinsiError}
-                onChange={this.handleChangeNumber}
-                value={form.kodeProvinsi}
-              />
-            </Form.Field>
-            <Form.Field required>
-              <label>Kode Provinsi (Kemendagri)</label>
-              <Form.Input
-                fluid
-                placeholder="Kode Provinsi (Kemendagri)"
-                error={form.kodeProvinsiCapilError}
-                id="kodeProvinsiCapil"
-                maxLength="2"
-                onChange={this.handleChangeNumber}
-                value={form.kodeProvinsiCapil}
-              />
-            </Form.Field>
-            <Form.Field required>
-              <label>Nama Provinsi</label>
-              <Form.Input
-                fluid
-                placeholder="Nama Provinsi"
-                id="namaProvinsi"
-                error={form.namaProvinsiError}
-                onChange={this.handleChangeToUpperCase}
-                value={form.namaProvinsi}
-              />
-            </Form.Field>
+            <Segment piled>
+              <Form.Field required>
+                <label>Kode Provinsi (Tidak Dapat Diubah)</label>
+                <Form.Input
+                  fluid
+                  readOnly={readOnly}
+                  placeholder="Kode Provinsi"
+                  id="kodeProvinsi"
+                  maxLength="2"
+                  error={form.kodeProvinsiError}
+                  onChange={this.handleChangeNumber}
+                  value={form.kodeProvinsi}
+                />
+              </Form.Field>
+              <Form.Field required>
+                <label>Kode Provinsi (Kemendagri)</label>
+                <Form.Input
+                  fluid
+                  placeholder="Kode Provinsi (Kemendagri)"
+                  error={form.kodeProvinsiCapilError}
+                  id="kodeProvinsiCapil"
+                  maxLength="2"
+                  onChange={this.handleChangeNumber}
+                  value={form.kodeProvinsiCapil}
+                />
+              </Form.Field>
+              <Form.Field required>
+                <label>Nama Provinsi</label>
+                <Form.Input
+                  fluid
+                  placeholder="Nama Provinsi"
+                  id="namaProvinsi"
+                  error={form.namaProvinsiError}
+                  onChange={this.handleChangeToUpperCase}
+                  value={form.namaProvinsi}
+                />
+              </Form.Field>
+            </Segment>
             {this.props.match.params.kodeProvinsi !== "tambah" ? (
               <Button
                 negative

@@ -302,7 +302,7 @@ class Kecamatan extends Component {
                       {kecamatan.kota ? (
                         <Table.Cell>{kecamatan.kota.namaKota}</Table.Cell>
                       ) : (
-                        <Table.Cell error>
+                        <Table.Cell textAlign='center' error>
                           {" "}
                           <Icon name="attention" /> Tidak Punya Kota
                         </Table.Cell>

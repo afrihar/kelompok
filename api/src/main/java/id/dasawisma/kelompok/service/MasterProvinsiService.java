@@ -22,8 +22,8 @@ public class MasterProvinsiService {
     return provinsiRepository.findAllByOrderByNamaProvinsiAsc();
   }
 
-  public Iterable<MasterProvinsi> findProvinsiByKodeProvinsi(String kodeProvinsi) {
-    return provinsiRepository.findProvinsiByKodeProvinsi(kodeProvinsi);
+  public Iterable<MasterProvinsi> findAllByKodeProvinsi(String kodeProvinsi) {
+    return provinsiRepository.findAllByKodeProvinsi(kodeProvinsi);
   }
 
   public MasterProvinsi findByKode(String kodeProvinsi) {

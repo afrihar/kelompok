@@ -26,6 +26,11 @@ import NavBar from "./components/util/NavBar";
 import Petugas from "./components/page/petugas/Petugas";
 import PetugasTambah from "./components/page/petugas/PetugasTambah";
 import PetugasDetail from "./components/page/petugas/PetugasDetail";
+import Kelompok from "./components/page/kelompok/Kelompok";
+import PetugasDomisili from "./components/page/petugas/PetugasDomisili";
+import PetugasDetailDomisili from "./components/page/petugas/PetugasDetailDomisili";
+import KelompokDetail from "./components/page/kelompok/KelompokDetail";
+import PetugasKelompok from "./components/page/petugas/PetugasKelompok";
 
 function App() {
   //TODO Keycloak Realm Config
@@ -95,8 +100,13 @@ function App() {
           <PrivateRoute path="/rt" exact component={Rt} />
           <PrivateRoute path="/rt/:kodeRt" component={RtDetail} />
           <PrivateRoute path="/petugas" exact component={Petugas} />
-          <PrivateRoute path="/petugas/tambah" component={PetugasTambah} />
           <PrivateRoute path="/petugas/:nik" component={PetugasDetail} />
+          <PrivateRoute path="/petugas-domisili" exact component={PetugasDomisili} />
+          <PrivateRoute path="/petugas-domisili/:nik" component={PetugasDetailDomisili} />
+          <PrivateRoute path="/petugas-kelompok/:nik" component={PetugasKelompok} />
+          <PrivateRoute path="/petugas-tambah" exact component={PetugasTambah} />
+          <PrivateRoute path="/kelompok" exact component={Kelompok} />
+          <PrivateRoute path="/kelompok/:id" component={KelompokDetail} />
           <Route component={Home} />
         </Switch>
         <Footer />

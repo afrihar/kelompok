@@ -102,20 +102,20 @@ public class MasterKotaController {
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
   @GetMapping("/options-provinsi")
   public ResponseEntity<?> getOptionsProvinsi() {
-    Iterable<MasterProvinsi> masterProvinsi = new ArrayList<>();
-    if (PrincipalUtil.isPusdatin()) {
-      masterProvinsi = provinsiService.findAllByOrderByNamaProvinsiAsc();
-    } else if (PrincipalUtil.isProvinsi()) {
-      masterProvinsi = provinsiService.findProvinsiByKodeProvinsi(PrincipalUtil.getKodeWilayah());
-    }
+    Iterable<MasterProvinsi> masterProvinsi = null;
+    if (PrincipalUtil.isPusdatin()) masterProvinsi = provinsiService.findAllByOrderByNamaProvinsiAsc();
+    else if (PrincipalUtil.isProvinsi())
+      masterProvinsi = provinsiService.findAllByKodeProvinsi(PrincipalUtil.getKodeWilayah());
     List<Map<String, Object>> response = new ArrayList<>();
-    masterProvinsi.forEach(provinsi -> {
-      Map<String, Object> map = new HashMap<>();
-      map.put("key", provinsi.getKodeProvinsi());
-      map.put("value", provinsi.getKodeProvinsi());
-      map.put("text", provinsi.getNamaProvinsi());
-      response.add(map);
-    });
+    if (masterProvinsi != null) {
+      masterProvinsi.forEach(provinsi -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", provinsi.getKodeProvinsi());
+        map.put("value", provinsi.getKodeProvinsi());
+        map.put("text", provinsi.getNamaProvinsi());
+        response.add(map);
+      });
+    }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

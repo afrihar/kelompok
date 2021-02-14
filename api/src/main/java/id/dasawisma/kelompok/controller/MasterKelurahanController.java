@@ -102,20 +102,25 @@ public class MasterKelurahanController {
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
   @GetMapping("/options-kecamatan")
   public ResponseEntity<?> getOptionsKecamatan() {
-    Iterable<MasterKecamatan> masterKecamatan;
-    if (PrincipalUtil.isPusdatin()) {
+    Iterable<MasterKecamatan> masterKecamatan = null;
+    if (PrincipalUtil.isPusdatin())
       masterKecamatan = kecamatanService.findAllByOrderByNamaKecamatanAsc();
-    } else {
-      masterKecamatan = kecamatanService.findAllByKodeKecamatanStartingWith(PrincipalUtil.getKodeWilayah());
-    }
+    else if (PrincipalUtil.isProvinsi())
+      masterKecamatan = kecamatanService.findAllByKota_KodeKotaStartingWithOrderByNamaKecamatanAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isKota())
+      masterKecamatan = kecamatanService.findAllByKota_KodeKotaOrderByNamaKecamatanAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isKecamatan())
+      masterKecamatan = kecamatanService.findAllByKodeKecamatan(PrincipalUtil.getKodeWilayah());
     List<Map<String, Object>> response = new ArrayList<>();
-    masterKecamatan.forEach(kecamatan -> {
-      Map<String, Object> map = new HashMap<>();
-      map.put("key", kecamatan.getKodeKecamatan());
-      map.put("value", kecamatan.getKodeKecamatan());
-      map.put("text", kecamatan.getNamaKecamatan());
-      response.add(map);
-    });
+    if (masterKecamatan != null) {
+      masterKecamatan.forEach(kecamatan -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", kecamatan.getKodeKecamatan());
+        map.put("value", kecamatan.getKodeKecamatan());
+        map.put("text", kecamatan.getNamaKecamatan());
+        response.add(map);
+      });
+    }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 

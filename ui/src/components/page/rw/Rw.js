@@ -314,7 +314,7 @@ class Rw extends Component {
                       {rw.kelurahan ? (
                         <Table.Cell>{rw.kelurahan.namaKelurahan}</Table.Cell>
                       ) : (
-                        <Table.Cell error>
+                        <Table.Cell textAlign='center' error>
                           {" "}
                           <Icon name="attention" /> Tidak Punya Kelurahan
                         </Table.Cell>

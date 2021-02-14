@@ -37,7 +37,7 @@ public class MasterRtSpecification implements Specification<MasterRt> {
   }
 
   private Predicate buildFilterByPrincipal(Root<MasterRt> root, CriteriaBuilder cb) {
-    return cb.like(root.get("kodeRt"), PrincipalUtil.getKodeWilayah() + "%");
+    return cb.like(root.get("rw").get("kodeRw"), PrincipalUtil.getKodeWilayah() + "%");
   }
 
   private void getAllRt(Root<MasterRt> root, CriteriaBuilder cb, Predicate predicate) {

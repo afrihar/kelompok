@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { withKeycloak } from "@react-keycloak/web";
-import { Button, Container, Form, Header } from "semantic-ui-react";
+import { Button, Container, Divider, Form, Header, Icon, Segment } from "semantic-ui-react";
 import { kelompokApi } from "../../util/KelompokApi";
 import { handleLogError, isProvinsi, isPusdatin } from "../../util/Helpers";
 import { Redirect } from "react-router-dom";
@@ -262,6 +262,14 @@ class KotaDetail extends Component {
     };
     this.setState({ modal, deleteKota: kota });
   };
+  handleClickBack = () => this.props.history.push("/kota");
+  handleKeyPressBack = (e) => {
+    if (e.charCode === 32 || e.charCode === 13) {
+      // Prevent the default action to stop scrolling when space is pressed
+      e.preventDefault();
+      this.props.history.push("/kota");
+    }
+  };
 
   render() {
     const { keycloak } = this.props;
@@ -275,64 +283,75 @@ class KotaDetail extends Component {
     if (isPusdatin(keycloak) || isProvinsi(keycloak)) {
       return (
         <Container className="isi" text>
-          <Header as="h1" textAlign="center">
-            Tambah kota
-          </Header>
+          {this.props.match.params.kodeKota === "tambah" ? (
+            <Header as="h1" textAlign="center"> Tambah Kota </Header>
+          ) : (
+            <Header as="h1" textAlign="center"> {form.namaKota} </Header>
+          )}
+          <Button animated basic color="grey" onClick={this.handleClickBack} onKeyPress={this.handleKeyPressBack}>
+            <Button.Content hidden>Kembali</Button.Content>
+            <Button.Content visible>
+              <Icon name="arrow left" />
+            </Button.Content>
+          </Button>
+          <Divider />
           <Form loading={isLoadingForm}>
-            <Form.Field required>
-              <label>Provinsi</label>
-              <Form.Dropdown
-                placeholder="Provinsi"
-                noResultsMessage="Tidak ada nama Provinsi..."
-                onChange={this.handleChangeDropdown}
-                search
-                disabled={readOnly}
-                options={provinsiOptions}
-                error={form.provinsiError}
-                selection
-                value={
-                  form.provinsi.kodeProvinsi === ""
-                    ? "31"
-                    : form.provinsi.kodeProvinsi
-                }
-              />
-            </Form.Field>
-            <Form.Field required>
-              <label>Kode Kota (Tidak Dapat Diubah)</label>
-              <Form.Input
-                fluid
-                readOnly={readOnly}
-                placeholder="Kode Kota"
-                maxLength="4"
-                id="kodeKota"
-                error={form.kodeKotaError}
-                onChange={this.handleChangeNumber}
-                value={form.kodeKota}
-              />
-            </Form.Field>
-            <Form.Field required>
-              <label>Kode Kota (Kemendagri)</label>
-              <Form.Input
-                fluid
-                placeholder="Kode Kota (Kemendagri)"
-                error={form.kodeKotaCapilError}
-                maxLength="4"
-                id="kodeKotaCapil"
-                onChange={this.handleChangeNumber}
-                value={form.kodeKotaCapil}
-              />
-            </Form.Field>
-            <Form.Field required>
-              <label>Nama Kota</label>
-              <Form.Input
-                fluid
-                placeholder="Nama Kota"
-                id="namaKota"
-                error={form.namaKotaError}
-                onChange={this.handleChangeToUpperCase}
-                value={form.namaKota}
-              />
-            </Form.Field>
+            <Segment piled>
+              <Form.Field required>
+                <label>Provinsi</label>
+                <Form.Dropdown
+                  placeholder="Provinsi"
+                  noResultsMessage="Tidak ada nama Provinsi..."
+                  onChange={this.handleChangeDropdown}
+                  search
+                  disabled={readOnly}
+                  options={provinsiOptions}
+                  error={form.provinsiError}
+                  selection
+                  value={
+                    form.provinsi.kodeProvinsi === ""
+                      ? "31"
+                      : form.provinsi.kodeProvinsi
+                  }
+                />
+              </Form.Field>
+              <Form.Field required>
+                <label>Kode Kota (Tidak Dapat Diubah)</label>
+                <Form.Input
+                  fluid
+                  readOnly={readOnly}
+                  placeholder="Kode Kota"
+                  maxLength="4"
+                  id="kodeKota"
+                  error={form.kodeKotaError}
+                  onChange={this.handleChangeNumber}
+                  value={form.kodeKota}
+                />
+              </Form.Field>
+              <Form.Field required>
+                <label>Kode Kota (Kemendagri)</label>
+                <Form.Input
+                  fluid
+                  placeholder="Kode Kota (Kemendagri)"
+                  error={form.kodeKotaCapilError}
+                  maxLength="4"
+                  id="kodeKotaCapil"
+                  onChange={this.handleChangeNumber}
+                  value={form.kodeKotaCapil}
+                />
+              </Form.Field>
+              <Form.Field required>
+                <label>Nama Kota</label>
+                <Form.Input
+                  fluid
+                  placeholder="Nama Kota"
+                  id="namaKota"
+                  error={form.namaKotaError}
+                  onChange={this.handleChangeToUpperCase}
+                  value={form.namaKota}
+                />
+              </Form.Field>
+            </Segment>
             {this.props.match.params.kodeKota !== "tambah" ? (
               <Button
                 negative
