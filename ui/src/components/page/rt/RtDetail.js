@@ -4,7 +4,7 @@ import { handleLogError, isKecamatan, isKelurahan, isKota, isProvinsi, isPusdati
 import { Redirect } from "react-router-dom";
 import { kelompokApi } from "../../util/KelompokApi";
 import { toast, ToastContainer } from "react-toastify";
-import { Button, Container, Divider, Form, Header } from "semantic-ui-react";
+import { Button, Container, Divider, Form, Header, Icon, Segment } from "semantic-ui-react";
 import ConfirmationModal from "../../util/ConfirmationModal";
 
 class RtDetail extends Component {
@@ -16,6 +16,10 @@ class RtDetail extends Component {
     noHpRt: "",
     noTelpRt: "",
     noTelpRtAlt: "",
+    targetBangunan: "",
+    targetRumahTangga: "",
+    targetKeluarga: "",
+    targetIndividu: "",
     kodeRtError: false,
     labelRtError: false,
     rwError: false
@@ -62,6 +66,10 @@ class RtDetail extends Component {
           noHpRt: rt.noHpRt,
           noTelpRt: rt.noTelpRt,
           noTelpRtAlt: rt.noTelpRtAlt,
+          targetBangunan: rt.targetBangunan,
+          targetRumahTangga: rt.targetRumahTangga,
+          targetKeluarga: rt.targetKeluarga,
+          targetIndividu: rt.targetIndividu,
           kodeRtError: false,
           labelRtError: false
         };
@@ -85,13 +93,13 @@ class RtDetail extends Component {
     if (form.kodeRt.trim() === "") {
       kodeRtError = true;
       form.kodeRtError = { pointing: "below", content: "Kode Rt harus diisi" };
-    } else if (form.kodeRt.length !== 16) {
+    } else if (form.kodeRt.length !== 15) {
       kodeRtError = true;
       form.kodeRtError = {
         pointing: "below",
-        content: "Kode Rt harus 16 digit"
+        content: "Kode Rt harus 15 digit"
       };
-    } else if (form.rw.kodeRw !== form.kodeRt.substr(0, 13)) {
+    } else if (form.rw.kodeRw !== form.kodeRt.substr(0, 12)) {
       kodeRtError = true;
       form.kodeRtError = {
         pointing: "below",
@@ -129,6 +137,12 @@ class RtDetail extends Component {
       form.labelRtError = {
         pointing: "below",
         content: "Label Rt harus 3 digit"
+      };
+    } else if (form.labelRt.trim() === "000") {
+      labelRtError = true;
+      form.labelRtError = {
+        pointing: "below",
+        content: "Label Rt Tidak boleh 000"
       };
     }
     if (form.rw.kodeRw.trim() === "") {
@@ -213,6 +227,10 @@ class RtDetail extends Component {
       noHpRt,
       noTelpRt,
       noTelpRtAlt,
+      targetBangunan,
+      targetRumahTangga,
+      targetKeluarga,
+      targetIndividu,
       rw
     } = this.state.form;
     const rt = {
@@ -222,6 +240,10 @@ class RtDetail extends Component {
       noHpRt,
       noTelpRt,
       noTelpRtAlt,
+      targetBangunan,
+      targetRumahTangga,
+      targetKeluarga,
+      targetIndividu,
       rw
     };
     try {
@@ -254,6 +276,14 @@ class RtDetail extends Component {
     this.setState({ modal, deleteRt: rt });
     // The deletion is done in handleActionModal function
   };
+  handleClickBack = () => this.props.history.push("/rt");
+  handleKeyPressBack = (e) => {
+    if (e.charCode === 32 || e.charCode === 13) {
+      // Prevent the default action to stop scrolling when space is pressed
+      e.preventDefault();
+      this.props.history.push("/rt");
+    }
+  };
 
   render() {
     const { keycloak } = this.props;
@@ -263,111 +293,163 @@ class RtDetail extends Component {
     ) {
       return (
         <Container className="isi" text>
-          <Header as="h1" textAlign="center">
-            Tambah RT
-          </Header>
+          {this.props.match.params.kodeRw === "tambah" ? (
+            <Header as="h1" textAlign="center"> Tambah Rt </Header>
+          ) : (
+            <Header as="h1" textAlign="center">RT {form.labelRt}</Header>
+          )}
+          <Button animated basic color="grey" onClick={this.handleClickBack} onKeyPress={this.handleKeyPressBack}>
+            <Button.Content hidden>Kembali</Button.Content>
+            <Button.Content visible>
+              <Icon name="arrow left" />
+            </Button.Content>
+          </Button>
+          <Divider />
           <Form loading={isLoadingForm}>
-            <Form.Field required>
-              <label>Kode RT (Tidak Dapat Diubah)</label>
-              <Form.Input
-                fluid
-                readOnly
-                placeholder="Kode RT"
-                maxLength="16"
-                id="kodeRt"
-                error={form.kodeRtError}
-                onChange={this.handleChangeNumber}
-                value={form.kodeRt}
-              />
-            </Form.Field>
-            <Divider />
-            <Form.Field required>
-              <label>Rw</label>
-              <Form.Dropdown
-                placeholder="Rw"
-                noResultsMessage="Tidak ada nama Rw..."
-                onChange={this.handleChangeDropdown}
-                search
-                disabled={readOnly}
-                options={rwOptions}
-                error={form.rwError}
-                selection
-                clearable
-                value={form.rw.kodeRw === "" ? undefined : form.rw.kodeRw}
-              />
-            </Form.Field>
-            <Form.Field required>
-              <label>Label RT (3 digit)</label>
-              <Form.Input
-                fluid
-                placeholder="Label RT"
-                error={form.labelRtError}
-                readOnly={readOnly}
-                maxLength="3"
-                id="labelRt"
-                onChange={this.handleChangeLabelRt}
-                value={form.labelRt}
-              />
-            </Form.Field>
-            <Form.Field>
-              <label>Nama Ketua RT</label>
-              <Form.Input
-                fluid
-                placeholder="Nama Ketua RT"
-                id="namaKetuaRt"
-                onChange={this.handleChange}
-                value={form.namaKetuaRt}
-              />
-            </Form.Field>
-            <Form.Field>
-              <label>Nomor Handphone RT</label>
-              <Form.Input
-                fluid
-                placeholder="Nomor Handphone RT"
-                id="noHpRt"
-                onChange={this.handleChangeNumber}
-                value={form.noHpRt}
-              />
-            </Form.Field>
-            <Form.Field>
-              <label>Nomor Telp RT</label>
-              <Form.Input
-                fluid
-                placeholder="Nomor Telp RT"
-                id="noTelpRt"
-                onChange={this.handleChangeNumber}
-                value={form.noTelpRt}
-              />
-            </Form.Field>
-            <Form.Field>
-              <label>Nomor Telp RT (Alternatif)</label>
-              <Form.Input
-                fluid
-                placeholder="Nomor Telp RT (Alternatif)"
-                id="noTelpRtAlt"
-                onChange={this.handleChangeNumber}
-                value={form.noTelpRtAlt}
-              />
-            </Form.Field>
+            <Segment piled>
+              <Form.Field required>
+                <label>Kode RT (Tidak Dapat Diubah)</label>
+                <Form.Input
+                  fluid
+                  readOnly
+                  placeholder="Kode RT"
+                  maxLength="15"
+                  id="kodeRt"
+                  error={form.kodeRtError}
+                  onChange={this.handleChangeNumber}
+                  value={form.kodeRt}
+                />
+              </Form.Field>
+              <Divider />
+              <Segment stacked>
+                <Form.Field required>
+                  <label>Rw</label>
+                  <Form.Dropdown
+                    placeholder="Rw"
+                    noResultsMessage="Tidak ada nama Rw..."
+                    onChange={this.handleChangeDropdown}
+                    search
+                    disabled={readOnly}
+                    options={rwOptions}
+                    error={form.rwError}
+                    selection
+                    clearable
+                    value={form.rw.kodeRw === "" ? undefined : form.rw.kodeRw}
+                  />
+                </Form.Field>
+                <Form.Field required>
+                  <label>Label RT (3 digit)</label>
+                  <Form.Input
+                    fluid
+                    placeholder="Label RT"
+                    error={form.labelRtError}
+                    readOnly={readOnly}
+                    maxLength="3"
+                    id="labelRt"
+                    onChange={this.handleChangeLabelRt}
+                    value={form.labelRt}
+                  />
+                </Form.Field>
+              </Segment>
+              <Divider />
+              <Segment stacked>
+                <Form.Group widths="equal">
+                  <Form.Field>
+                    <label>Target Bangunan</label>
+                    <Form.Input
+                      icon="home" iconPosition="left"
+                      fluid
+                      placeholder="Target Bangunan per RT"
+                      maxLength="4"
+                      id="targetBangunan"
+                      onChange={this.handleChangeNumber}
+                      value={form.targetBangunan} />
+                  </Form.Field>
+                  <Form.Field>
+                    <label>Target Rumah Tangga</label>
+                    <Form.Input
+                      icon="industry" iconPosition="left"
+                      fluid
+                      placeholder="Target Rumah Tangga per RT"
+                      maxLength="4"
+                      id="targetRumahTangga"
+                      onChange={this.handleChangeNumber}
+                      value={form.targetRumahTangga} />
+                  </Form.Field>
+                  <Form.Field>
+                    <label>Target Keluarga</label>
+                    <Form.Input
+                      icon="users" iconPosition="left"
+                      fluid
+                      placeholder="Target Keluarga per RT"
+                      maxLength="4"
+                      id="targetKeluarga"
+                      onChange={this.handleChangeNumber}
+                      value={form.targetKeluarga} />
+                  </Form.Field>
+                  <Form.Field>
+                    <label>Target Individu</label>
+                    <Form.Input
+                      icon="child" iconPosition="left"
+                      fluid
+                      placeholder="Target Individu per RT"
+                      maxLength="4"
+                      id="targetIndividu"
+                      onChange={this.handleChangeNumber}
+                      value={form.targetIndividu} />
+                  </Form.Field>
+                </Form.Group>
+              </Segment>
+              <Divider />
+              <Segment stacked>
+                <Form.Field>
+                  <label>Nama Ketua RT</label>
+                  <Form.Input
+                    fluid
+                    placeholder="Nama Ketua RT"
+                    id="namaKetuaRt"
+                    onChange={this.handleChange}
+                    value={form.namaKetuaRt}
+                  />
+                </Form.Field>
+                <Form.Field>
+                  <label>Nomor Handphone RT</label>
+                  <Form.Input
+                    fluid
+                    placeholder="Nomor Handphone RT"
+                    id="noHpRt"
+                    onChange={this.handleChangeNumber}
+                    value={form.noHpRt}
+                  />
+                </Form.Field>
+                <Form.Field>
+                  <label>Nomor Telp RT</label>
+                  <Form.Input
+                    fluid
+                    placeholder="Nomor Telp RT"
+                    id="noTelpRt"
+                    onChange={this.handleChangeNumber}
+                    value={form.noTelpRt}
+                  />
+                </Form.Field>
+                <Form.Field>
+                  <label>Nomor Telp RT (Alternatif)</label>
+                  <Form.Input
+                    fluid
+                    placeholder="Nomor Telp RT (Alternatif)"
+                    id="noTelpRtAlt"
+                    onChange={this.handleChangeNumber}
+                    value={form.noTelpRtAlt}
+                  />
+                </Form.Field>
+              </Segment>
+            </Segment>
             {this.props.match.params.kodeRt !== "tambah" ? (
-              <Button
-                negative
-                floated="left"
-                onClick={() => this.handleDeleteRt(form)}
-              >
-                Hapus
-              </Button>
+              <Button negative floated="left" onClick={() => this.handleDeleteRt(form)}> Hapus </Button>
             ) : (
               <></>
             )}
-            <Button
-              positive
-              floated="right"
-              type="submit"
-              onClick={this.handleSaveRt}
-            >
-              Simpan
-            </Button>
+            <Button positive floated="right" type="submit" onClick={this.handleSaveRt}> Simpan </Button>
           </Form>
           <ConfirmationModal modal={modal} />
           <ToastContainer draggable rtl={false} newestOnTop pauseOnHover closeOnClick autoClose={3500}

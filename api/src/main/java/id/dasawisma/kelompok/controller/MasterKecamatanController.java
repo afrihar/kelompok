@@ -102,20 +102,22 @@ public class MasterKecamatanController {
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
   @GetMapping("/options-kota")
   public ResponseEntity<?> getOptionsKota() {
-    Iterable<MasterKota> masterKota;
-    if (PrincipalUtil.isPusdatin()) {
-      masterKota = kotaService.findAllByOrderByNamaKotaAsc();
-    } else {
-      masterKota = kotaService.findAllByKodeKotaStartingWith(PrincipalUtil.getKodeWilayah());
-    }
+    Iterable<MasterKota> masterKota = null;
+    if (PrincipalUtil.isPusdatin()) masterKota = kotaService.findAllByOrderByNamaKotaAsc();
+    else if (PrincipalUtil.isProvinsi())
+      masterKota = kotaService.findAllByProvinsi_KodeProvinsiOrderByNamaKotaAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isKota())
+      masterKota = kotaService.findAllByKodeKota(PrincipalUtil.getKodeWilayah());
     List<Map<String, Object>> response = new ArrayList<>();
-    masterKota.forEach(kota -> {
-      Map<String, Object> map = new HashMap<>();
-      map.put("key", kota.getKodeKota());
-      map.put("value", kota.getKodeKota());
-      map.put("text", kota.getNamaKota());
-      response.add(map);
-    });
+    if (masterKota != null) {
+      masterKota.forEach(kota -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", kota.getKodeKota());
+        map.put("value", kota.getKodeKota());
+        map.put("text", kota.getNamaKota());
+        response.add(map);
+      });
+    }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 

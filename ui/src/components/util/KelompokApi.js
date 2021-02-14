@@ -38,20 +38,37 @@ export const kelompokApi = {
   saveRt,
   deleteRt,
   getPetugas,
+  getPetugasDomisili,
   getPetugasByNik,
   savePetugas,
   deletePetugas,
-  getPetugasOptionsKota,
-  getPetugasOptionsKecamatan,
-  getPetugasOptionsKelurahan,
-  getPetugasOptionsRw,
-  getPetugasOptionsRt,
+  getPetugasOptionsKotaDomisili,
+  getPetugasOptionsKecamatanDomisili,
+  getPetugasOptionsKelurahanDomisili,
+  getPetugasOptionsRwDomisili,
+  getPetugasOptionsRtDomisili,
+  getPetugasOptionsKotaTugas,
+  getPetugasOptionsKecamatanTugas,
+  getPetugasOptionsKelurahanTugas,
+  getPetugasOptionsRwTugas,
+  getPetugasOptionsRtTugas,
+  getKelompokByPetugas,
+  getKelompokByRtTugas,
+  savePetugasKelompok,
   getNikDki,
   getPetugasKelurahanByKodeCapil,
   getKelompok,
   getKelompokById,
   saveKelompok,
   deleteKelompok,
+  getKelompokOptionsKota,
+  getKelompokOptionsKecamatan,
+  getKelompokOptionsKelurahan,
+  getKelompokOptionsRw,
+  getKelompokOptionsRt,
+  getKelompokOptionsPetugas,
+  getKelompokDetailKelurahan,
+  getKelompokLastNumber,
   getOptionsAgama,
   getOptionsPendidikan,
   getOptionsPekerjaan,
@@ -434,6 +451,23 @@ function getPetugas(token, page, size, sortBy, direction, filterWilayah, filter)
   });
 }
 
+function getPetugasDomisili(token, page, size, sortBy, direction, filterWilayah, filter) {
+  return instance.get("/api/petugas/domisili", {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    },
+    params: {
+      page: page,
+      size: size,
+      sortBy: sortBy,
+      direction: direction,
+      filterWilayah: filterWilayah,
+      filter: filter
+    }
+  });
+}
+
 function getPetugasByNik(nik, token) {
   return instance.get(`/api/petugas/${nik}`, {
     headers: {
@@ -443,8 +477,8 @@ function getPetugasByNik(nik, token) {
   });
 }
 
-function getPetugasOptionsKota(token) {
-  return instance.get(`/api/petugas/options-kota`, {
+function getPetugasOptionsKotaDomisili(token) {
+  return instance.get(`/api/petugas/options-kota-domisili`, {
     headers: {
       "Content-type": "application/json",
       Authorization: bearerAuth(token)
@@ -452,8 +486,8 @@ function getPetugasOptionsKota(token) {
   });
 }
 
-function getPetugasOptionsKecamatan(kodeKota, token) {
-  return instance.get(`/api/petugas/options-kecamatan/${kodeKota}`, {
+function getPetugasOptionsKecamatanDomisili(kodeKota, token) {
+  return instance.get(`/api/petugas/options-kecamatan-domisili/${kodeKota}`, {
     headers: {
       "Content-type": "application/json",
       Authorization: bearerAuth(token)
@@ -461,8 +495,8 @@ function getPetugasOptionsKecamatan(kodeKota, token) {
   });
 }
 
-function getPetugasOptionsKelurahan(kodeKecamatan, token) {
-  return instance.get(`/api/petugas/options-kelurahan/${kodeKecamatan}`, {
+function getPetugasOptionsKelurahanDomisili(kodeKecamatan, token) {
+  return instance.get(`/api/petugas/options-kelurahan-domisili/${kodeKecamatan}`, {
     headers: {
       "Content-type": "application/json",
       Authorization: bearerAuth(token)
@@ -470,8 +504,8 @@ function getPetugasOptionsKelurahan(kodeKecamatan, token) {
   });
 }
 
-function getPetugasOptionsRw(kodeKelurahan, token) {
-  return instance.get(`/api/petugas/options-rw/${kodeKelurahan}`, {
+function getPetugasOptionsRwDomisili(kodeKelurahan, token) {
+  return instance.get(`/api/petugas/options-rw-domisili/${kodeKelurahan}`, {
     headers: {
       "Content-type": "application/json",
       Authorization: bearerAuth(token)
@@ -479,8 +513,71 @@ function getPetugasOptionsRw(kodeKelurahan, token) {
   });
 }
 
-function getPetugasOptionsRt(kodeRw, token) {
-  return instance.get(`/api/petugas/options-rt/${kodeRw}`, {
+function getPetugasOptionsRtDomisili(kodeRw, token) {
+  return instance.get(`/api/petugas/options-rt-domisili/${kodeRw}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getPetugasOptionsKotaTugas(token) {
+  return instance.get(`/api/petugas/options-kota-tugas`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getPetugasOptionsKecamatanTugas(kodeKota, token) {
+  return instance.get(`/api/petugas/options-kecamatan-tugas/${kodeKota}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getPetugasOptionsKelurahanTugas(kodeKecamatan, token) {
+  return instance.get(`/api/petugas/options-kelurahan-tugas/${kodeKecamatan}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getPetugasOptionsRwTugas(kodeKelurahan, token) {
+  return instance.get(`/api/petugas/options-rw-tugas/${kodeKelurahan}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getPetugasOptionsRtTugas(kodeRw, token) {
+  return instance.get(`/api/petugas/options-rt-tugas/${kodeRw}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getKelompokByPetugas(nik, token) {
+  return instance.get(`/api/petugas/kelompok/${nik}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getKelompokByRtTugas(kodeRt, token) {
+  return instance.get(`/api/kelompok/rt/${kodeRt}`, {
     headers: {
       "Content-type": "application/json",
       Authorization: bearerAuth(token)
@@ -514,6 +611,15 @@ function getNikDki(nik, token) {
 
 function getPetugasKelurahanByKodeCapil(kodeKelurahanCapil, token) {
   return instance.get(`/api/petugas/kode-capil/${kodeKelurahanCapil}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function savePetugasKelompok(petugasKelompok, token) {
+  return instance.post("/api/petugas/kelompok", petugasKelompok, {
     headers: {
       "Content-type": "application/json",
       Authorization: bearerAuth(token)
@@ -560,6 +666,78 @@ function saveKelompok(kelompok, token) {
 function deleteKelompok(idKelompok, token) {
   return instance.delete(`/api/kelompok/${idKelompok}`, {
     headers: { Authorization: bearerAuth(token) }
+  });
+}
+
+function getKelompokOptionsKota(token) {
+  return instance.get(`/api/kelompok/options-kota`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getKelompokOptionsKecamatan(kodeKota, token) {
+  return instance.get(`/api/kelompok/options-kecamatan/${kodeKota}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getKelompokOptionsKelurahan(kodeKecamatan, token) {
+  return instance.get(`/api/kelompok/options-kelurahan/${kodeKecamatan}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getKelompokOptionsRw(kodeKelurahan, token) {
+  return instance.get(`/api/kelompok/options-rw/${kodeKelurahan}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getKelompokOptionsRt(kodeRw, token) {
+  return instance.get(`/api/kelompok/options-rt/${kodeRw}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getKelompokOptionsPetugas(kodeRt, token) {
+  return instance.get(`/api/kelompok/options-petugas/${kodeRt}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getKelompokDetailKelurahan(kodeKelurahan, token) {
+  return instance.get(`/api/kelompok/kelurahan-detail/${kodeKelurahan}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getKelompokLastNumber(kodeRt, token) {
+  return instance.get(`/api/kelompok/next-number/${kodeRt}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
   });
 }
 

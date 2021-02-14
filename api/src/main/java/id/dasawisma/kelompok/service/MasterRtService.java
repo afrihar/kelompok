@@ -18,8 +18,16 @@ public class MasterRtService {
     return rtRepository.findAll(rtSpecification, paging);
   }
 
-  public Iterable<MasterRt> findAllByKodeRtStartingWithOrderByRw_KodeRwAscKodeRtAsc(String kodeRt) {
-    return rtRepository.findAllByKodeRtStartingWithOrderByRw_KodeRwAscKodeRtAsc(kodeRt);
+  public Iterable<MasterRt> findAllByRw_KodeRwStartingWithOrderByRw_KodeRwAscKodeRtAsc(String kodeRw) {
+    return rtRepository.findAllByRw_KodeRwStartingWithOrderByRw_KodeRwAscKodeRtAsc(kodeRw);
+  }
+
+  public Iterable<MasterRt> findAllByRw_KodeRwOrderByRw_KodeRwAscKodeRtAsc(String kodeRw) {
+    return rtRepository.findAllByRw_KodeRwOrderByRw_KodeRwAscKodeRtAsc(kodeRw);
+  }
+
+  public Iterable<MasterRt> findAllByKodeRt(String kodeRt) {
+    return rtRepository.findAllByKodeRt(kodeRt);
   }
 
   public Iterable<MasterRt> findAllByOrderByRw_KodeRwAscLabelRtAsc() {

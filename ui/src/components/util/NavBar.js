@@ -29,11 +29,11 @@ function Navbar(props) {
     }
   };
   // const getUsername = () => {
-  //   return keycloak.authenticated && keycloak.tokenParsed && keycloak.tokenParsed['preferred_username']
-  // }
+  //   return keycloak.authenticated && keycloak.tokenParsed && keycloak.tokenParsed["preferred_username"];
+  // };
   // const getName = () => {
-  //   return keycloak.authenticated && keycloak.tokenParsed && keycloak.tokenParsed['name']
-  // }
+  //   return keycloak.authenticated && keycloak.tokenParsed && keycloak.tokenParsed["name"];
+  // };
   const getFirstname = () => {
     return (
       keycloak.authenticated &&
@@ -145,87 +145,86 @@ function Navbar(props) {
       isKelurahan(keycloak) ||
       isRw(keycloak) ||
       isRt(keycloak)) ? (
-      <Dropdown.Item
-        as={NavLink}
-        exact
-        to="/petugas"
-        onClick={checkAuthenticated}
-      >
-        Petugas
-      </Dropdown.Item>
-    ) : (
-      <></>
-    );
+      <Dropdown.Item as={NavLink} exact to="/petugas" onClick={checkAuthenticated}>Petugas (Wilayah
+        Tugas) </Dropdown.Item>
+    ) : (<></>);
+  };
+  const getMenuMasterPetugasDomisili = () => {
+    return keycloak.authenticated &&
+    (isPusdatin(keycloak) ||
+      isProvinsi(keycloak) ||
+      isKota(keycloak) ||
+      isKecamatan(keycloak) ||
+      isKelurahan(keycloak) ||
+      isRw(keycloak) ||
+      isRt(keycloak)) ? (
+      <Dropdown.Item as={NavLink} exact to="/petugas-domisili" onClick={checkAuthenticated}>Petugas
+        (Domisili) </Dropdown.Item>
+    ) : (<></>);
   };
   const getMenuKelompok = () => {
-    return keycloak.authenticated && isPusdatin(keycloak) ? (
+    return keycloak.authenticated && (isPusdatin(keycloak) ||
+      isProvinsi(keycloak) ||
+      isKota(keycloak) ||
+      isKecamatan(keycloak) ||
+      isKelurahan(keycloak) ||
+      isRw(keycloak) ||
+      isRt(keycloak)) ? (
       <Dropdown.Item
         as={NavLink}
         exact
-        to="kelompok"
+        to="/kelompok"
         onClick={checkAuthenticated}
       >
         Kelompok
       </Dropdown.Item>
-    ) : (
-      <></>
-    );
+    ) : (<></>);
   };
   const getMenuBangunan = () => {
     return keycloak.authenticated && isPusdatin(keycloak) ? (
       <Dropdown.Item
         as={NavLink}
         exact
-        to="bangunan"
+        to="/bangunan"
         onClick={checkAuthenticated}
       >
         Bangunan
       </Dropdown.Item>
-    ) : (
-      <></>
-    );
+    ) : (<></>);
   };
   const getMenuRumahTangga = () => {
     return keycloak.authenticated && isPusdatin(keycloak) ? (
       <Dropdown.Item
         as={NavLink}
         exact
-        to="rumah-tangga"
+        to="/rumah-tangga"
         onClick={checkAuthenticated}
       >
         Rumah Tangga
       </Dropdown.Item>
-    ) : (
-      <></>
-    );
+    ) : (<></>);
   };
   const getMenuKeluarga = () => {
     return keycloak.authenticated && isPusdatin(keycloak) ? (
       <Dropdown.Item
         as={NavLink}
         exact
-        to="keluarga"
-        onClick={checkAuthenticated}
-      >
+        to="/keluarga"
+        onClick={checkAuthenticated}>
         Keluarga
       </Dropdown.Item>
-    ) : (
-      <></>
-    );
+    ) : (<></>);
   };
   const getMenuIndividu = () => {
     return keycloak.authenticated && isPusdatin(keycloak) ? (
       <Dropdown.Item
         as={NavLink}
         exact
-        to="individu"
-        onClick={checkAuthenticated}
-      >
+        to="/individu"
+        onClick={checkAuthenticated}>
         Individu
       </Dropdown.Item>
-    ) : (
-      <></>
-    );
+    ) : (<></>);
   };
   return (
     <MediaContextProvider>
@@ -233,11 +232,7 @@ function Navbar(props) {
         <Menu fixed="top">
           <Container>
             <Menu.Item header as={NavLink} exact to="/">
-              <Image
-                size="mini"
-                src="/carik.svg"
-                style={{ marginRight: "1.5em" }}
-              />
+              <Image size="mini" src="/carik.svg" style={{ marginRight: "1.5em" }} />
               Kelompok
             </Menu.Item>
             {keycloak.authenticated &&
@@ -256,13 +251,18 @@ function Navbar(props) {
                   {getMenuMasterKelurahan()}
                   {getMenuMasterRw()}
                   {getMenuMasterRt()}
+                  {getMenuMasterPetugasDomisili()}
                   {getMenuMasterPetugas()}
                 </Dropdown.Menu>
               </Dropdown>
-            ) : (
-              <></>
-            )}
-            {keycloak.authenticated && isPusdatin(keycloak) ? (
+            ) : (<></>)}
+            {keycloak.authenticated && (isPusdatin(keycloak) ||
+              isProvinsi(keycloak) ||
+              isKota(keycloak) ||
+              isKecamatan(keycloak) ||
+              isKelurahan(keycloak) ||
+              isRw(keycloak) ||
+              isRt(keycloak)) ? (
               <Dropdown item text="Transaksi">
                 <Dropdown.Menu>
                   {getMenuKelompok()}
@@ -272,9 +272,7 @@ function Navbar(props) {
                   {getMenuIndividu()}
                 </Dropdown.Menu>
               </Dropdown>
-            ) : (
-              <></>
-            )}
+            ) : (<></>)}
             <Menu.Menu position="right">
               {keycloak.authenticated && (
                 <Menu.Item>
@@ -290,8 +288,7 @@ function Navbar(props) {
                   inline
                   text={`${getFirstname()}  ${getLastname()}`}
                   pointing
-                  className="link item"
-                >
+                  className="link item">
                   <Dropdown.Menu>
                     <Dropdown.Item as={NavLink} to="/settings">
                       User Settings
@@ -306,8 +303,7 @@ function Navbar(props) {
                 as={NavLink}
                 exact
                 to="/login"
-                onClick={handleLogInOut}
-              >
+                onClick={handleLogInOut}>
                 {getLogInOutText()}
               </Menu.Item>
             </Menu.Menu>
@@ -335,13 +331,18 @@ function Navbar(props) {
                   {getMenuMasterKelurahan()}
                   {getMenuMasterRw()}
                   {getMenuMasterRt()}
+                  {getMenuMasterPetugasDomisili()}
                   {getMenuMasterPetugas()}
                 </Dropdown.Menu>
               </Dropdown>
-            ) : (
-              <></>
-            )}
-            {keycloak.authenticated && isPusdatin(keycloak) ? (
+            ) : (<></>)}
+            {keycloak.authenticated && (isPusdatin(keycloak) ||
+              isProvinsi(keycloak) ||
+              isKota(keycloak) ||
+              isKecamatan(keycloak) ||
+              isKelurahan(keycloak) ||
+              isRw(keycloak) ||
+              isRt(keycloak)) ? (
               <Dropdown item text="Transaksi">
                 <Dropdown.Menu>
                   {getMenuKelompok()}
@@ -351,16 +352,13 @@ function Navbar(props) {
                   {getMenuIndividu()}
                 </Dropdown.Menu>
               </Dropdown>
-            ) : (
-              <></>
-            )}
+            ) : (<></>)}
             <Menu.Menu position="right">
               {keycloak.authenticated && (
                 <Dropdown
                   text={`${getFirstname()}  ${getLastname()}`}
                   pointing
-                  className="link item"
-                >
+                  className="link item">
                   <Dropdown.Menu>
                     <Dropdown.Item as={NavLink} to="/settings">
                       User Settings
@@ -375,8 +373,7 @@ function Navbar(props) {
                 as={NavLink}
                 exact
                 to="/login"
-                onClick={handleLogInOut}
-              >
+                onClick={handleLogInOut}>
                 {getLogInOutText()}
               </Menu.Item>
             </Menu.Menu>

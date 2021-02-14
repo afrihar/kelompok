@@ -12,6 +12,19 @@ import java.util.Map;
 import java.util.Set;
 
 public final class PrincipalUtil {
+  public static final int LENGTH_KODE_PROVINSI = 2;
+  public static final int LENGTH_KODE_KOTA = 4;
+  public static final int LENGTH_KODE_KECAMATAN = 6;
+  public static final int LENGTH_KODE_KELURAHAN = 9;
+  public static final int LENGTH_KODE_RW = 12;
+  public static final int LENGTH_KODE_RT = 15;
+
+  private static String buildKode(int lengthKode) {
+    if (getKodeWilayah().length() > lengthKode) return getKodeWilayah().substring(0, lengthKode);
+    else if (getKodeWilayah().length() == lengthKode) return getKodeWilayah();
+    else return null;
+  }
+
   public static String getKodeWilayah() {
     Principal principal = SecurityContextHolder.getContext().getAuthentication();
     String kodeWilayah = "";
@@ -25,6 +38,30 @@ public final class PrincipalUtil {
       }
     }
     return kodeWilayah;
+  }
+
+  public static String getKodeProvinsi() {
+    return buildKode(LENGTH_KODE_PROVINSI);
+  }
+
+  public static String getKodeKota() {
+    return buildKode(LENGTH_KODE_KOTA);
+  }
+
+  public static String getKodeKecamatan() {
+    return buildKode(LENGTH_KODE_KECAMATAN);
+  }
+
+  public static String getKodeKelurahan() {
+    return buildKode(LENGTH_KODE_KELURAHAN);
+  }
+
+  public static String getKodeRw() {
+    return buildKode(LENGTH_KODE_RW);
+  }
+
+  public static String getKodeRt() {
+    return buildKode(LENGTH_KODE_RT);
   }
 
   public static String getPreferredUsername() {
@@ -80,4 +117,5 @@ public final class PrincipalUtil {
   public static boolean isKader() {
     return getRoles().contains(WebSecurityConfig.KADER);
   }
+
 }

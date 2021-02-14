@@ -293,6 +293,10 @@ class Rt extends Component {
                   <Table.HeaderCell>No Telp Rt</Table.HeaderCell>
                   <Table.HeaderCell>No Telp Alt Rt</Table.HeaderCell>
                   <Table.HeaderCell>Rw</Table.HeaderCell>
+                  <Table.HeaderCell>Target Bangunan</Table.HeaderCell>
+                  <Table.HeaderCell>Target Rumah Tangga</Table.HeaderCell>
+                  <Table.HeaderCell>Target Keluarga</Table.HeaderCell>
+                  <Table.HeaderCell>Target Individu</Table.HeaderCell>
                 </Table.Row>
               </Table.Header>
               <Table.Body>
@@ -315,6 +319,38 @@ class Rt extends Component {
                           <Icon name="attention" /> Tidak Punya Rw
                         </Table.Cell>
                       )}
+                      {rt.targetBangunan ? (
+                        <Table.Cell textAlign="right">{rt.targetBangunan}</Table.Cell>
+                      ) : (
+                        <Table.Cell textAlign="center" negative>
+                          {" "}
+                          <Icon name="question circle" />
+                        </Table.Cell>
+                      )}
+                      {rt.targetRumahTangga ? (
+                        <Table.Cell textAlign="right">{rt.targetRumahTangga}</Table.Cell>
+                      ) : (
+                        <Table.Cell textAlign="center" negative>
+                          {" "}
+                          <Icon name="question circle" />
+                        </Table.Cell>
+                      )}
+                      {rt.targetKeluarga ? (
+                        <Table.Cell textAlign="right">{rt.targetKeluarga}</Table.Cell>
+                      ) : (
+                        <Table.Cell textAlign="center" negative>
+                          {" "}
+                          <Icon name="question circle" />
+                        </Table.Cell>
+                      )}
+                      {rt.targetIndividu ? (
+                        <Table.Cell textAlign="right" positive>{rt.targetIndividu}</Table.Cell>
+                      ) : (
+                        <Table.Cell textAlign="center" negative>
+                          {" "}
+                          <Icon name="question circle" />
+                        </Table.Cell>
+                      )}
                     </Table.Row>
                   ))
                 ) : (
@@ -329,12 +365,11 @@ class Rt extends Component {
                       icon
                       labelPosition="left"
                       primary
-                      size="small"
-                    >
+                      size="small"                    >
                       <Icon name="add" /> Rt
                     </Button>
                   </Table.HeaderCell>
-                  <Table.HeaderCell colSpan="5">
+                  <Table.HeaderCell colSpan="9">
                     {responseRt.totalItems > 0 && responseRt.totalPages > 1 ? (
                       <Pagination
                         floated="right"

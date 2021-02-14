@@ -296,7 +296,7 @@ class Kota extends Component {
                       {kota.provinsi ? (
                         <Table.Cell>{kota.provinsi.namaProvinsi}</Table.Cell>
                       ) : (
-                        <Table.Cell error>
+                        <Table.Cell textAlign='center' error>
                           {" "}
                           <Icon name="attention" /> Tidak Punya Provinsi
                         </Table.Cell>

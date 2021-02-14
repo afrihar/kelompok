@@ -5,13 +5,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-import javax.validation.constraints.NotBlank;
-
 @Repository
 public interface MasterRwRepository extends JpaRepository<MasterRw, Long>, JpaSpecificationExecutor<MasterRw> {
-  Iterable<MasterRw> findAllByKodeRwStartingWithOrderByKelurahan_NamaKelurahanAscLabelRwAsc(@NotBlank(message = "Kode Rw harus diisi.") String kodeRw);
-
   Iterable<MasterRw> findAllByOrderByKelurahan_NamaKelurahanAscLabelRwAsc();
 
-  MasterRw findByKodeRw(String kodeRw);
+  Iterable<MasterRw> findAllByKelurahan_KodeKelurahanStartingWithOrderByKelurahan_NamaKelurahanAscLabelRwAsc(String kodeKelurahan);
+
+  Iterable<MasterRw> findAllByKelurahan_KodeKelurahanOrderByKelurahan_NamaKelurahanAscLabelRwAsc(String kodeKelurahan);
+
+  Iterable<MasterRw> findAllByKodeRw(String kodeRw);
+
+  MasterRw findMasterRwByKodeRw(String kodeRw);
 }

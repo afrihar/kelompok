@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { withKeycloak } from "@react-keycloak/web";
+import { kelompokApi } from "../../util/KelompokApi";
 import {
   handleLogError,
   isKecamatan,
@@ -9,27 +11,32 @@ import {
   isRt,
   isRw
 } from "../../util/Helpers";
-import { Button, Container, Dimmer, Form, Header, Loader, Message, Segment } from "semantic-ui-react";
-import { kelompokApi } from "../../util/KelompokApi";
 import { toast, ToastContainer } from "react-toastify";
-import { withKeycloak } from "@react-keycloak/web";
 import { Redirect } from "react-router-dom";
-import { nikParser } from "../../util/NikParser";
+import { Button, Container, Divider, Form, Header, Icon, Message, Segment } from "semantic-ui-react";
+import ConfirmationModal from "../../util/ConfirmationModal";
 import { DateInput } from "semantic-ui-calendar-react";
 
-class PetugasTambah extends Component {
+class PetugasDetailDomisili extends Component {
+  modalInitialState = {
+    isOpen: false,
+    header: "",
+    content: "",
+    onAction: null,
+    onClose: null
+  };
   formInitialState = {
     nik: "",
     nama: "", alamatDomisili: "",
     gender: "", agama: { id: 0 },
     tempatLahir: "", tanggalLahir: "",
-    provinsiDomisili: { kodeProvinsi: "" }, kotaDomisili: { kodeKota: "" },
+    kotaDomisili: { kodeKota: "" },
     kecamatanDomisili: { kodeKecamatan: "" }, kelurahanDomisili: { kodeKelurahan: "" },
     rwDomisili: { kodeRw: "" }, rtDomisili: { kodeRt: "" },
     noHpPetugas: "", noTelpPetugas: "",
     email: "", noRekening: "",
     noNpwp: "", noSkLurah: "",
-    provinsiTugas: { kodeProvinsi: "" }, kotaTugas: { kodeKota: "" },
+    kotaTugas: { kodeKota: "" },
     kecamatanTugas: { kodeKecamatan: "" }, kelurahanTugas: { kodeKelurahan: "" },
     rwTugas: { kodeRw: "" }, rtTugas: { kodeRt: "" },
     namaIbuKandung: "", pendidikan: { id: 0 },
@@ -37,38 +44,24 @@ class PetugasTambah extends Component {
     statusPernikahan: { id: 0 }, namaPasangan: "",
     namaEmergencyCall: "", alamatEmergencyCall: "",
     provinsiEmergencyCall: { kodeProvinsi: "" }, kotaEmergencyCall: { kodeKota: "" },
-    noHpEmergencyCall: "", hubunganEmergency: { id: 0 },
-    isNikDki: false
+    noHpEmergencyCall: "", hubunganEmergency: { id: 0 }
   };
   errorInitialState = {
-    nik: false,
     nama: false, alamatDomisili: false,
     gender: false, agama: false,
     noHpPetugas: false, noTelpPetugas: false,
     email: false, noRekening: false,
-    rtDomisili: false, rtTugas: false
-  };
-  parsedNikInitialState = {
-    province: "",
-    kabupatenKota: "",
-    kecamatan: "",
-    kodepos: "",
-    lahir: "",
-    kelamin: "",
-    kodeUnik: ""
+    rtDomisili: false
   };
   messageInitialState = {
-    isShowParsingNik: false,
-    isShowRegisteredDawisNik: false,
-    isShowNotDkiNik: false,
-    isShowErrorCapil: false
+    isMatchWilayah: false
   };
   state = {
-    isLoadingNik: false,
+    namaAsli: "",
     isLoadingForm: false,
+    modal: { ...this.modalInitialState },
     form: { ...this.formInitialState },
     error: { ...this.errorInitialState },
-    parsedNik: { ...this.parsedNikInitialState },
     message: { ...this.messageInitialState },
     genderOptions: [],
     agamaOptions: [],
@@ -91,21 +84,162 @@ class PetugasTambah extends Component {
     kotaEmergencyCallOptions: [],
     hubunganEmergencyOptions: []
   };
-  handleChangeNik = (e) => {
-    const re = /^[0-9]+$/;
-    if (
-      e.target.value === "" || re.test(e.target.value)) {
-      const { id, value } = e.target;
-      const form = { ...this.state.form };
-      form[id] = value;
-      this.setState({
-        form,
-        error: { ...this.errorInitialState },
-        parsedNik: { ...this.parsedNikInitialState },
-        message: { ...this.messageInitialState }
-      });
+
+  async componentDidMount() {
+    this.setState({ isLoadingForm: true });
+    const { keycloak } = this.props;
+    if (isPusdatin(keycloak)) this.setState({ message: { isMatchWilayah: true } });
+    try {
+      const response = await kelompokApi.getPetugasByNik(this.props.match.params.nik, keycloak.token);
+      const petugas = response.data;
+      this.setState({ namaAsli: petugas.nama });
+      // if (petugas.rtDomisili) {
+      // }
+      if ((isRt(keycloak) && (petugas.rtDomisili.kodeRt === keycloak.tokenParsed["kode_wilayah"].toString()))
+        || (isRw(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 12) === keycloak.tokenParsed["kode_wilayah"].toString()))
+        || (isKelurahan(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 9) === keycloak.tokenParsed["kode_wilayah"].toString()))
+        || (isKecamatan(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 6) === keycloak.tokenParsed["kode_wilayah"].toString()))
+        || (isKota(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 4) === keycloak.tokenParsed["kode_wilayah"].toString()))
+        || (isProvinsi(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 2) === keycloak.tokenParsed["kode_wilayah"].toString()))
+        || (isPusdatin(keycloak))
+      ) {
+        this.setState({ message: { isMatchWilayah: true } });
+        const genderOptions = [{
+          key: "L",
+          text: "Laki laki",
+          value: "L"
+        }, {
+          key: "P",
+          text: "Perempuan",
+          value: "P"
+        }];
+        const getAgamaOptions = await kelompokApi.getOptionsAgama(keycloak.token);
+        const getPendidikanOptions = await kelompokApi.getOptionsPendidikan(keycloak.token);
+        const getStatusPernikahanOptions = await kelompokApi.getOptionsStatusPernikahan(keycloak.token);
+        const getPekerjaanOptions = await kelompokApi.getOptionsPekerjaan(keycloak.token);
+        const getStatusPekerjaanOptions = await kelompokApi.getOptionsStatusPekerjaan(keycloak.token);
+        const provinsiOptions = [{
+          key: "31",
+          text: "DKI JAKARTA",
+          value: "31"
+        }];
+        const getKotaDomisiliOptions = await kelompokApi.getPetugasOptionsKotaDomisili(keycloak.token);
+        const getKotaTugasOptions = await kelompokApi.getPetugasOptionsKotaTugas(keycloak.token);
+        const getProvinsiEcOptions = await kelompokApi.getPetugasOptionsProvinsiEmergency(keycloak.token);
+        const getHubunganEmergencyOptions = await kelompokApi.getOptionsHubunganEmergency(keycloak.token);
+        this.setState({
+          genderOptions,
+          agamaOptions: getAgamaOptions.data,
+          pendidikanOptions: getPendidikanOptions.data,
+          statusPernikahanOptions: getStatusPernikahanOptions.data,
+          pekerjaanOptions: getPekerjaanOptions.data,
+          statusPekerjaanOptions: getStatusPekerjaanOptions.data,
+          provinsiOptions,
+          kotaDomisiliOptions: getKotaDomisiliOptions.data,
+          kotaTugasOptions: getKotaTugasOptions.data,
+          provinsiEmergencyCallOptions: getProvinsiEcOptions.data,
+          hubunganEmergencyOptions: getHubunganEmergencyOptions.data
+        });
+        let form = { ...this.formInitialState };
+        if (petugas.nik) form.nik = petugas.nik;
+        if (petugas.nama) form.nama = petugas.nama;
+        if (petugas.alamatDomisili) form.alamatDomisili = petugas.alamatDomisili;
+        if (petugas.gender) form.gender = petugas.gender;
+        if (petugas.agama) form.agama.id = petugas.agama.id;
+        if (petugas.tempatLahir) form.tempatLahir = petugas.tempatLahir;
+        if (petugas.tanggalLahir) form.tanggalLahir = petugas.tanggalLahir;
+        if (petugas.noHpPetugas) form.noHpPetugas = petugas.noHpPetugas;
+        if (petugas.noTelpPetugas) form.noTelpPetugas = petugas.noTelpPetugas;
+        if (petugas.email) form.email = petugas.email;
+        if (petugas.noRekening) form.noRekening = petugas.noRekening;
+        if (petugas.noNpwp) form.noNpwp = petugas.noNpwp;
+        if (petugas.noSkLurah) form.noSkLurah = petugas.noSkLurah;
+        if (petugas.rtDomisili) {
+          form.kotaDomisili.kodeKota = petugas.rtDomisili.rw.kelurahan.kecamatan.kota.kodeKota;
+          const getKecamatanDomisiliOptions = await kelompokApi.getPetugasOptionsKecamatanDomisili(form.kotaDomisili.kodeKota, keycloak.token);
+          form.kecamatanDomisili.kodeKecamatan = petugas.rtDomisili.rw.kelurahan.kecamatan.kodeKecamatan;
+          const getKelurahanDomisiliOptions = await kelompokApi.getPetugasOptionsKelurahanDomisili(form.kecamatanDomisili.kodeKecamatan, keycloak.token);
+          form.kelurahanDomisili.kodeKelurahan = petugas.rtDomisili.rw.kelurahan.kodeKelurahan;
+          const getRwDomisiliOptions = await kelompokApi.getPetugasOptionsRwDomisili(form.kelurahanDomisili.kodeKelurahan, keycloak.token);
+          form.rwDomisili.kodeRw = petugas.rtDomisili.rw.kodeRw;
+          const getRtDomisiliOptions = await kelompokApi.getPetugasOptionsRtDomisili(form.rwDomisili.kodeRw, keycloak.token);
+          form.rtDomisili.kodeRt = petugas.rtDomisili.kodeRt;
+          this.setState({
+            kecamatanDomisiliOptions: getKecamatanDomisiliOptions.data,
+            kelurahanDomisiliOptions: getKelurahanDomisiliOptions.data,
+            rwDomisiliOptions: getRwDomisiliOptions.data,
+            rtDomisiliOptions: getRtDomisiliOptions.data
+          });
+        }
+        if (petugas.rtTugas) {
+          form.kotaTugas.kodeKota = petugas.rtTugas.rw.kelurahan.kecamatan.kota.kodeKota;
+          const getKecamatanTugasOptions = await kelompokApi.getPetugasOptionsKecamatanTugas(form.kotaTugas.kodeKota, keycloak.token);
+          form.kecamatanTugas.kodeKecamatan = petugas.rtTugas.rw.kelurahan.kecamatan.kodeKecamatan;
+          const getKelurahanTugasOptions = await kelompokApi.getPetugasOptionsKelurahanTugas(form.kecamatanTugas.kodeKecamatan, keycloak.token);
+          form.kelurahanTugas.kodeKelurahan = petugas.rtTugas.rw.kelurahan.kodeKelurahan;
+          const getRwTugasOptions = await kelompokApi.getPetugasOptionsRwTugas(form.kelurahanTugas.kodeKelurahan, keycloak.token);
+          form.rwTugas.kodeRw = petugas.rtTugas.rw.kodeRw;
+          const getRtTugasOptions = await kelompokApi.getPetugasOptionsRtTugas(form.rwTugas.kodeRw, keycloak.token);
+          form.rtTugas.kodeRt = petugas.rtTugas.kodeRt;
+          this.setState({
+            kecamatanTugasOptions: getKecamatanTugasOptions.data,
+            kelurahanTugasOptions: getKelurahanTugasOptions.data,
+            rwTugasOptions: getRwTugasOptions.data,
+            rtTugasOptions: getRtTugasOptions.data
+          });
+        } else if (petugas.rtDomisili) {
+          form.kotaTugas.kodeKota = petugas.rtDomisili.rw.kelurahan.kecamatan.kota.kodeKota;
+          const getKecamatanTugasOptions = await kelompokApi.getPetugasOptionsKecamatanTugas(form.kotaTugas.kodeKota, keycloak.token);
+          form.kecamatanTugas.kodeKecamatan = petugas.rtDomisili.rw.kelurahan.kecamatan.kodeKecamatan;
+          const getKelurahanTugasOptions = await kelompokApi.getPetugasOptionsKelurahanTugas(form.kecamatanTugas.kodeKecamatan, keycloak.token);
+          form.kelurahanTugas.kodeKelurahan = petugas.rtDomisili.rw.kelurahan.kodeKelurahan;
+          const getRwTugasOptions = await kelompokApi.getPetugasOptionsRwTugas(form.kelurahanTugas.kodeKelurahan, keycloak.token);
+          this.setState({
+            kecamatanTugasOptions: getKecamatanTugasOptions.data,
+            kelurahanTugasOptions: getKelurahanTugasOptions.data,
+            rwTugasOptions: getRwTugasOptions.data
+          });
+        }
+        if (petugas.namaIbuKandung) form.namaIbuKandung = petugas.namaIbuKandung;
+        if (petugas.pendidikan) form.pendidikan.id = petugas.pendidikan.id;
+        if (petugas.pekerjaan) form.pekerjaan.id = petugas.pekerjaan.id;
+        if (petugas.statusPekerjaan) form.statusPekerjaan.id = petugas.statusPekerjaan.id;
+        if (petugas.statusPernikahan) form.statusPernikahan.id = petugas.statusPernikahan.id;
+        if (petugas.namaPasangan) form.namaPasangan = petugas.namaPasangan;
+        if (petugas.namaEmergencyCall) form.namaEmergencyCall = petugas.namaEmergencyCall;
+        if (petugas.alamatEmergencyCall) form.alamatEmergencyCall = petugas.alamatEmergencyCall;
+        if (petugas.provinsiEmergencyCall) {
+          form.provinsiEmergencyCall.kodeProvinsi = petugas.provinsiEmergencyCall.kodeProvinsi;
+          this.setState({
+            isLoadingKotaEmergencyCall: true,
+            kotaEmergencyCallOptions: []
+          });
+          try {
+            const getPetugasOptionsKotaEmergencyOptions = await kelompokApi.getPetugasOptionsKotaEmergency(form.provinsiEmergencyCall.kodeProvinsi, keycloak.token);
+            const kotaEmergencyCallOptions = getPetugasOptionsKotaEmergencyOptions.data;
+            this.setState({ kotaEmergencyCallOptions });
+          } catch (error) {
+            handleLogError(error);
+          }
+        }
+        if (petugas.kotaEmergencyCall) {
+          if (petugas.provinsiEmergencyCall) {
+            form.kotaEmergencyCall.kodeKota = petugas.kotaEmergencyCall.kodeKota;
+          } else {
+            form.provinsiEmergencyCall.kodeProvinsi = petugas.kotaEmergencyCall.kodeKota.substr(0, 2);
+          }
+        }
+        if (petugas.noHpEmergencyCall) form.noHpEmergencyCall = petugas.noHpEmergencyCall;
+        if (petugas.hubunganEmergency) form.hubunganEmergency.id = petugas.hubunganEmergency.id;
+        this.setState({ form, isLoadingKotaEmergencyCall: false });
+      }
+    } catch (error) {
+      handleLogError(error);
+      this.props.history.push("/petugas-domisili");
     }
-  };
+    this.setState({ isLoadingForm: false });
+  }
+
   handleChangeNama = (e) => {
     const error = { ...this.state.error };
     error.nama = false;
@@ -221,98 +355,148 @@ class PetugasTambah extends Component {
     }
   };
   handleChangeDropdownKotaDomisili = async (e, { value }) => {
+    const error = { ...this.state.error };
+    error.rtDomisili = false;
+    error.rtTugas = false;
     const form = { ...this.state.form };
     form.kotaDomisili.kodeKota = value;
+    form.kotaTugas.kodeKota = value;
     this.setState({
       isLoadingKecamatanDomisili: true,
+      isLoadingKecamatanTugas: true,
       kecamatanDomisiliOptions: [],
+      kecamatanTugasOptions: [],
       kelurahanDomisiliOptions: [],
+      kelurahanTugasOptions: [],
       rwDomisiliOptions: [],
-      rtDomisiliOptions: []
+      rwTugasOptions: [],
+      rtDomisiliOptions: [],
+      rtTugasOptions: []
     });
     form.kecamatanDomisili.kodeKecamatan = "";
+    form.kecamatanTugas.kodeKecamatan = "";
     form.kelurahanDomisili.kodeKelurahan = "";
+    form.kelurahanTugas.kodeKelurahan = "";
     form.rwDomisili.kodeRw = "";
-    form.rtDomisili.kodeRt = "";
+    form.rwTugas.kodeRw = "";
+    form.rtTugas.kodeRt = "";
+    form.rtTugas.kodeRt = "";
     if (value) {
       try {
         const { keycloak } = this.props;
         const getKecamatanDomisiliOptions = await kelompokApi.getPetugasOptionsKecamatanDomisili(value, keycloak.token);
-        this.setState({ kecamatanDomisiliOptions: getKecamatanDomisiliOptions.data });
+        const kecamatanDomisiliOptions = getKecamatanDomisiliOptions.data;
+        const kecamatanTugasOptions = getKecamatanDomisiliOptions.data;
+        this.setState({ kecamatanDomisiliOptions, kecamatanTugasOptions });
       } catch (error) {
         handleLogError(error);
       }
     }
-    this.setState({ form, isLoadingKecamatanDomisili: false });
+    this.setState({ form, error, isLoadingKecamatanDomisili: false, isLoadingKecamatanTugas: false });
   };
   handleChangeDropdownKecamatanDomisili = async (e, { value }) => {
+    const error = { ...this.state.error };
+    error.rtDomisili = false;
+    error.rtTugas = false;
     const form = { ...this.state.form };
     form.kecamatanDomisili.kodeKecamatan = value;
+    form.kecamatanTugas.kodeKecamatan = value;
     this.setState({
       isLoadingKelurahanDomisili: true,
+      isLoadingKelurahanTugas: true,
       kelurahanDomisiliOptions: [],
+      kelurahanTugasOptions: [],
       rwDomisiliOptions: [],
-      rtDomisiliOptions: []
+      rwTugasOptions: [],
+      rtDomisiliOptions: [],
+      rtTugasOptions: []
     });
     form.kelurahanDomisili.kodeKelurahan = "";
+    form.kelurahanTugas.kodeKelurahan = "";
     form.rwDomisili.kodeRw = "";
+    form.rwTugas.kodeRw = "";
     form.rtDomisili.kodeRt = "";
+    form.rtTugas.kodeRt = "";
     if (value) {
       try {
         const { keycloak } = this.props;
         const getKelurahanDomisiliOptions = await kelompokApi.getPetugasOptionsKelurahanDomisili(value, keycloak.token);
         const kelurahanDomisiliOptions = getKelurahanDomisiliOptions.data;
-        this.setState({ kelurahanDomisiliOptions });
+        const kelurahanTugasOptions = getKelurahanDomisiliOptions.data;
+        this.setState({ kelurahanDomisiliOptions, kelurahanTugasOptions });
       } catch (error) {
         handleLogError(error);
       }
     }
-    this.setState({ form, isLoadingKelurahanDomisili: false });
+    this.setState({ form, error, isLoadingKelurahanDomisili: false, isLoadingKelurahanTugas: false });
   };
   handleChangeDropdownKelurahanDomisili = async (e, { value }) => {
+    const error = { ...this.state.error };
+    error.rtDomisili = false;
+    error.rtTugas = false;
     const form = { ...this.state.form };
     form.kelurahanDomisili.kodeKelurahan = value;
+    form.kelurahanTugas.kodeKelurahan = value;
     this.setState({
       isLoadingRwDomisili: true,
+      isLoadingRwTugas: true,
       rwDomisiliOptions: [],
-      rtDomisiliOptions: []
+      rwTugasOptions: [],
+      rtDomisiliOptions: [],
+      rtTugasOptions: []
     });
     form.rwDomisili.kodeRw = "";
+    form.rwTugas.kodeRw = "";
     form.rtDomisili.kodeRt = "";
+    form.rtTugas.kodeRt = "";
     if (value) {
       try {
         const { keycloak } = this.props;
         const getRwDomisiliOptions = await kelompokApi.getPetugasOptionsRwDomisili(value, keycloak.token);
         const rwDomisiliOptions = getRwDomisiliOptions.data;
-        this.setState({ rwDomisiliOptions });
+        const rwTugasOptions = getRwDomisiliOptions.data;
+        this.setState({ rwDomisiliOptions, rwTugasOptions });
       } catch (error) {
         handleLogError(error);
       }
     }
-    this.setState({ form, isLoadingRwDomisili: false });
+    this.setState({ form, error, isLoadingRwDomisili: false, isLoadingRwTugas: false });
   };
   handleChangeDropdownRwDomisili = async (e, { value }) => {
+    const error = { ...this.state.error };
+    error.rtDomisili = false;
+    error.rtTugas = false;
     const form = { ...this.state.form };
     form.rwDomisili.kodeRw = value;
-    this.setState({ isLoadingRtDomisili: true, rtDomisiliOptions: [] });
+    form.rwTugas.kodeRw = value;
+    this.setState({
+      isLoadingRtDomisili: true,
+      isLoadingRtTugas: true,
+      rtDomisiliOptions: [],
+      rtTugasOptions: []
+    });
     form.rtDomisili.kodeRt = "";
+    form.rtTugas.kodeRt = "";
     if (value) {
       try {
         const { keycloak } = this.props;
         const getRtDomisiliOptions = await kelompokApi.getPetugasOptionsRtDomisili(value, keycloak.token);
         const rtDomisiliOptions = getRtDomisiliOptions.data;
-        this.setState({ rtDomisiliOptions });
+        const rtTugasOptions = getRtDomisiliOptions.data;
+        this.setState({ rtDomisiliOptions, rtTugasOptions });
       } catch (error) {
         handleLogError(error);
       }
     }
-    this.setState({ form, isLoadingRtDomisili: false });
+    this.setState({ form, error, isLoadingRtDomisili: false, isLoadingRtTugas: false });
   };
   handleChangeDropdownRtDomisili = (e, { value }) => {
     const error = { ...this.state.error };
     error.rtDomisili = false;
+    error.rtTugas = false;
     const form = { ...this.state.form };
     form.rtDomisili.kodeRt = value;
+    form.rtTugas.kodeRt = value;
     this.setState({ form, error });
   };
   handleChangeDropdownKotaTugas = async (e, { value }) => {
@@ -494,145 +678,21 @@ class PetugasTambah extends Component {
     this.setState({ form });
   };
   handleChangeNoHpEmergencyCall = (e) => {
+    const error = { ...this.state.error };
+    error.noHpEmergencyCall = false;
     const re = /^[0-9]+$/;
     if (
       e.target.value === "" || re.test(e.target.value)) {
       const { id, value } = e.target;
       const form = { ...this.state.form };
       form[id] = value;
-      this.setState({ form });
+      this.setState({ error, form });
     }
   };
   handleChangeDropdownHubunganEmergency = (e, { value }) => {
     const form = { ...this.state.form };
     if (value === "") form.hubunganEmergency.id = 0; else form.hubunganEmergency.id = value;
     this.setState({ form });
-  };
-  cekNik = async () => {
-    this.setState({ isLoadingNik: true });
-    const form = { ...this.state.form };
-    const error = { ...this.errorInitialState };
-    const message = { ...this.messageInitialState };
-    if (form.nik.trim() === "") {
-      error.nik = { pointing: "above", content: "NIK harus diisi" };
-    } else if (form.nik.length !== 16) {
-      error.nik = { pointing: "above", content: "NIK harus 16 digit" };
-    } else if (nikParser(form.nik).isValid()) {
-      const nikParsed = nikParser(form.nik);
-      const parsedNik = { ...this.state.parsedNik };
-      parsedNik.province = nikParsed.province();
-      parsedNik.kabupatenKota = nikParsed.kabupatenKota();
-      parsedNik.kecamatan = nikParsed.kecamatan();
-      parsedNik.kodepos = nikParsed.kodepos();
-      parsedNik.lahir = nikParsed.lahir().toDateString();
-      if (nikParsed.kelamin() === "L")
-        parsedNik.kelamin = "Laki laki";
-      else if (nikParsed.kelamin() === "P")
-        parsedNik.kelamin = "Perempuan";
-      this.setState({ parsedNik });
-      const { keycloak } = this.props;
-      message.isShowParsingNik = true;
-      try {
-        const response = await kelompokApi.getPetugasByNik(form.nik, keycloak.token);
-        const petugas = response.data;
-        form.nikPetugasNama = petugas.nama;
-        if (petugas.rtDomisili && petugas.alamatDomisili) {
-          form.nikPetugasDomisili = petugas.alamatDomisili +
-            " - RT " + petugas.rtDomisili.labelRt +
-            " - RW " + petugas.rtDomisili.rw.labelRw +
-            " - Kelurahan " + petugas.rtDomisili.rw.kelurahan.namaKelurahan;
-        } else if (petugas.rtDomisili) {
-          form.nikPetugasDomisili = "RT " + petugas.rtDomisili.labelRt +
-            " - RW " + petugas.rtDomisili.rw.labelRw +
-            " - Kelurahan " + petugas.rtDomisili.rw.kelurahan.namaKelurahan;
-        } else if (petugas.alamatDomisili) {
-          form.nikPetugasDomisili = petugas.alamatDomisili;
-        }
-        if (petugas.rtTugas) {
-          form.nikPetugasTugas = "RT " + petugas.rtTugas.labelRt +
-            " - RW " + petugas.rtTugas.rw.labelRw +
-            " - Kelurahan " + petugas.rtTugas.rw.kelurahan.namaKelurahan;
-        }
-        message.isShowRegisteredDawisNik = true;
-      } catch (error) {
-        try {
-          const response = await kelompokApi.getNikDki(form.nik, keycloak.token);
-          const nikDki = response.data;
-          if (nikDki.nama) {
-            form.nama = nikDki.nama;
-            form.alamatDomisili = nikDki.alamatDomisili;
-            const genderOptions = [{
-              key: "L",
-              text: "Laki laki",
-              value: "L"
-            }, {
-              key: "P",
-              text: "Perempuan",
-              value: "P"
-            }];
-            this.setState({ genderOptions });
-            form.gender = nikDki.gender;
-            const agamaOptions = await kelompokApi.getOptionsAgama(keycloak.token).data;
-            this.setState({ agamaOptions });
-            form.agama.id = parseInt(nikDki.agama);
-            form.tempatLahir = nikDki.tempatLahir;
-            form.tanggalLahir = nikDki.tanggalLahir.split("/").reverse().join("-");
-            const provinsiOptions = [{
-              key: "31",
-              text: "DKI JAKARTA",
-              value: "31"
-            }];
-            this.setState({ provinsiDomisiliOptions: provinsiOptions, provinsiTugasOptions: provinsiOptions });
-            const getKelurahanByCapil = await kelompokApi.getPetugasKelurahanByKodeCapil(nikDki.kelurahanCapil, keycloak.token);
-            const kelurahanByCapil = getKelurahanByCapil.data;
-            form.provinsiDomisili.kodeProvinsi = kelurahanByCapil.kecamatan.kota.provinsi.kodeProvinsi;
-            const getKotaDomisiliOptions = await kelompokApi.getPetugasOptionsKotaDomisili(keycloak.token);
-            this.setState({ kotaDomisiliOptions: getKotaDomisiliOptions.data });
-            form.kotaDomisili.kodeKota = kelurahanByCapil.kecamatan.kota.kodeKota;
-            const getKecamatanDomisiliOptions = await kelompokApi.getPetugasOptionsKecamatanDomisili(form.kotaDomisili.kodeKota, keycloak.token);
-            this.setState({ kecamatanDomisiliOptions: getKecamatanDomisiliOptions.data });
-            form.kecamatanDomisili.kodeKecamatan = kelurahanByCapil.kecamatan.kodeKecamatan;
-            const getKelurahanDomisiliOptions = await kelompokApi.getPetugasOptionsKelurahanDomisili(form.kecamatanDomisili.kodeKecamatan, keycloak.token);
-            this.setState({ kelurahanDomisiliOptions: getKelurahanDomisiliOptions.data });
-            form.kelurahanDomisili.kodeKelurahan = kelurahanByCapil.kodeKelurahan;
-            const getRwDomisiliOptions = await kelompokApi.getPetugasOptionsRwDomisili(form.kelurahanDomisili.kodeKelurahan, keycloak.token);
-            this.setState({ rwDomisiliOptions: getRwDomisiliOptions.data });
-            form.rwDomisili.kodeRw = kelurahanByCapil.kodeKelurahan + nikDki.rwCapil;
-            const getRtDomisiliOptions = await kelompokApi.getPetugasOptionsRtDomisili(form.rwDomisili.kodeRw, keycloak.token);
-            this.setState({ rtDomisiliOptions: getRtDomisiliOptions.data });
-            form.rtDomisili.kodeRt = form.rwDomisili.kodeRw + nikDki.rtCapil;
-            form.provinsiTugas.kodeProvinsi = kelurahanByCapil.kecamatan.kota.provinsi.kodeProvinsi;
-            const getKotaTugasOptions = await kelompokApi.getPetugasOptionsKotaTugas(keycloak.token);
-            this.setState({ kotaTugasOptions: getKotaTugasOptions.data });
-            const getPendidikanOptions = await kelompokApi.getOptionsPendidikan(keycloak.token);
-            this.setState({ pendidikanOptions: getPendidikanOptions.data });
-            form.pendidikan.id = parseInt(nikDki.pendidikan);
-            const getPekerjaanOptions = await kelompokApi.getOptionsPekerjaan(keycloak.token);
-            this.setState({ pekerjaanOptions: getPekerjaanOptions.data });
-            form.pekerjaan.id = parseInt(nikDki.pekerjaan);
-            const getStatusPekerjaanOptions = await kelompokApi.getOptionsStatusPekerjaan(keycloak.token);
-            this.setState({ statusPekerjaanOptions: getStatusPekerjaanOptions.data });
-            const getStatusPernikahanOptions = await kelompokApi.getOptionsStatusPernikahan(keycloak.token);
-            this.setState({ statusPernikahanOptions: getStatusPernikahanOptions.data });
-            form.statusPernikahan.id = parseInt(nikDki.statusPernikahan);
-            const getProvinsiEmergencyCallOptions = await kelompokApi.getPetugasOptionsProvinsiEmergency(keycloak.token);
-            this.setState({ provinsiEmergencyCallOptions: getProvinsiEmergencyCallOptions.data });
-            const getKotaEmergencyCallOptions = await kelompokApi.getOptionsHubunganEmergency(keycloak.token);
-            this.setState({ kotaEmergencyCallOptions: getKotaEmergencyCallOptions.data });
-            form.isNikDki = true;
-          } else if (nikDki.notfound) {
-            message.isShowNotDkiNik = true;
-          } else if (nikDki.error) {
-            message.isShowErrorCapil = true;
-          }
-        } catch (error) {
-          handleLogError(error);
-        }
-      }
-    } else {
-      error.nik = { pointing: "above", content: "Format NIK tidak sesuai ketentuan" };
-    }
-    this.setState({ form, error, message, isLoadingNik: false });
   };
   isValidForm = () => {
     const form = { ...this.state.form };
@@ -647,7 +707,6 @@ class PetugasTambah extends Component {
     let emailError = false;
     let noRekeningError = false;
     let rtDomisiliError = false;
-    let rtTugasError = false;
     let noHpEmergencyCallError = false;
     if (form.nama.trim() === "") {
       namaError = true;
@@ -669,10 +728,6 @@ class PetugasTambah extends Component {
       rtDomisiliError = true;
       error.rtDomisili = { pointing: "above", content: "RT Domisili harus diisi" };
     }
-    if (form.rtTugas.kodeRt.trim() === "") {
-      rtTugasError = true;
-      error.rtTugas = { pointing: "above", content: "RT Tugas harus diisi" };
-    }
     if (form.noHpPetugas.trim() && form.noHpPetugas.substr(0, 2) !== "08") {
       noHpPetugasError = true;
       error.noHpPetugas = { pointing: "below", content: "No HP harus diawali \"08\"" };
@@ -689,9 +744,10 @@ class PetugasTambah extends Component {
       noRekeningError = true;
       error.noRekening = { pointing: "below", content: "Nomor Rekening tidak boleh diawali angka \"0\"" };
     }
-    if (form.noHpEmergencyCall.trim() && form.noHpEmergencyCall.substr(0, 2) !== "08") {
+    if (form.noHpEmergencyCall.trim()
+      && (form.noHpEmergencyCall.substr(0, 2) !== "08" && form.noHpEmergencyCall.substr(0, 3) !== "021")) {
       noHpEmergencyCallError = true;
-      error.noHpEmergencyCall = { pointing: "below", content: "No HP harus diawali \"08\"" };
+      error.noHpEmergencyCall = { pointing: "below", content: "No HP harus diawali \"08\" atau \"021\"" };
     }
     this.setState({ error });
     return (!(namaError
@@ -703,8 +759,7 @@ class PetugasTambah extends Component {
       || noHpEmergencyCallError
       || genderError
       || agamaError
-      || rtDomisiliError
-      || rtTugasError));
+      || rtDomisiliError));
   };
   handleSavePetugas = async () => {
     if (!(this.isValidForm())) {
@@ -721,13 +776,13 @@ class PetugasTambah extends Component {
         tempatLahir,
         tanggalLahir,
         rtDomisili,
-        rtTugas,
         noHpPetugas,
         noTelpPetugas,
         email,
         noRekening,
         noNpwp,
         noSkLurah,
+        rtTugas,
         namaIbuKandung,
         pendidikan,
         pekerjaan,
@@ -788,15 +843,75 @@ class PetugasTambah extends Component {
       );
     }
   };
+  handleDeletePetugas = (petugas) => {
+    this.setState({ isLoadingForm: true });
+    const modal = {
+      isOpen: true,
+      header: "Hapus Petugas",
+      content: `Apakah anda yakin akan menghapus Petugas dengan NIK '${petugas.nik}'?`,
+      onAction: this.handleActionModal,
+      onClose: this.handleCloseModal
+    };
+    this.setState({ modal, deletePetugas: petugas });
+  };
+  handleActionModal = async (response) => {
+    if (response) {
+      const { keycloak } = this.props;
+      const { deletePetugas } = this.state;
+      try {
+        await kelompokApi.deletePetugas(deletePetugas.nik, keycloak.token);
+        toast.info(
+          <div>
+            <p>Petugas {deletePetugas.nik} telah dihapus, Mohon Tunggu...</p>
+          </div>,
+          { onClose: () => this.props.history.push("/petugas-domisili") }
+        );
+      } catch (error) {
+        toast.error(error.request.response, {
+          onClose: () => this.setState({ isLoadingForm: false })
+        });
+        handleLogError(error);
+      }
+    } else {
+      this.setState({ isLoadingForm: false });
+    }
+    this.setState({ modal: { ...this.modalInitialState } });
+  };
+  handleCloseModal = () => {
+    this.setState({
+      modal: { ...this.modalInitialState },
+      isLoadingForm: false
+    });
+  };
+  handleClickBack = () => this.props.history.push("/petugas-domisili");
+  handleKeyPressBack = (e) => {
+    if (e.charCode === 32 || e.charCode === 13) {
+      // Prevent the default action to stop scrolling when space is pressed
+      e.preventDefault();
+      this.props.history.push("/petugas-domisili");
+    }
+  };
+  handleClickKelompok = () => {
+    const form = { ...this.state.form };
+    this.props.history.push("/petugas-kelompok/" + form.nik);
+  };
+  handleKeyPressKelompok = (e) => {
+    if (e.charCode === 32 || e.charCode === 13) {
+      // Prevent the default action to stop scrolling when space is pressed
+      e.preventDefault();
+      const form = { ...this.state.form };
+      this.props.history.push("/petugas-kelompok/" + form.nik);
+    }
+  };
 
   render() {
     const {
+      namaAsli,
+      modal,
       form,
       error,
-      parsedNik,
       message,
       isLoadingForm,
-      isLoadingNik,
       isLoadingKecamatanDomisili,
       isLoadingKelurahanDomisili,
       isLoadingRwDomisili,
@@ -808,13 +923,12 @@ class PetugasTambah extends Component {
       isLoadingKotaEmergencyCall,
       genderOptions,
       agamaOptions,
-      provinsiDomisiliOptions,
+      provinsiOptions,
       kotaDomisiliOptions,
       kecamatanDomisiliOptions,
       kelurahanDomisiliOptions,
       rwDomisiliOptions,
       rtDomisiliOptions,
-      provinsiTugasOptions,
       kotaTugasOptions,
       kecamatanTugasOptions,
       kelurahanTugasOptions,
@@ -830,43 +944,37 @@ class PetugasTambah extends Component {
     } = this.state;
     const { keycloak } = this.props;
     if (
-      isPusdatin(keycloak) || isProvinsi(keycloak) || isKota(keycloak) ||
-      isKecamatan(keycloak) || isKelurahan(keycloak) || isRw(keycloak) || isRt(keycloak)
-    ) {
+      isPusdatin(keycloak) ||
+      isProvinsi(keycloak) ||
+      isKota(keycloak) ||
+      isKecamatan(keycloak) ||
+      isKelurahan(keycloak) ||
+      isRw(keycloak) ||
+      isRt(keycloak)) {
       return (
         <Container className="isi" text>
-          <Header as="h1" textAlign="center"> Tambah Petugas </Header>
+          <Header as="h1" textAlign="center"> {namaAsli} </Header>
+          <Header as="h2" textAlign="center"> {form.nik} </Header>
+          <Button animated basic color="grey" onClick={this.handleClickBack} onKeyPress={this.handleKeyPressBack}>
+            <Button.Content hidden>Kembali</Button.Content>
+            <Button.Content visible>
+              <Icon name="arrow left" />
+            </Button.Content>
+          </Button>
+          {form.rtTugas.kodeRt !== "" ?
+            <Button animated basic color="grey" floated="right" onClick={this.handleClickKelompok}
+                    onKeyPress={this.handleKeyPressKelompok}>
+              <Button.Content hidden>Kelompok</Button.Content>
+              <Button.Content visible>
+                <Icon name="map" />
+              </Button.Content>
+            </Button> : <></>}
+          <Divider />
           <Form loading={isLoadingForm}>
-            <Form.Field required>
-              <label>NIK (Nomor Induk Kependudukan)</label>
-              <Form.Input id="nik" maxLength="16" value={form.nik} placeholder="NIK" error={error.nik}
-                          readOnly={form.isNikDki} action={{ icon: "search", onClick: () => this.cekNik() }}
-                          onChange={this.handleChangeNik} />
-            </Form.Field>
-            <Message positive hidden={!message.isShowParsingNik}>
-              <Message.Header>Format NIK Valid.</Message.Header>
-              <p>
-                NIK Berasal dari Provinsi <b>{parsedNik.province}</b>, <b>{parsedNik.kabupatenKota}</b>,
-                Kecamatan <b>{parsedNik.kecamatan} ({parsedNik.kodepos})</b>,
-                Jenis Kelamin <b>{parsedNik.kelamin}</b>, Tanggal Lahir <b>{parsedNik.lahir}</b>.
-              </p>
+            <Message negative hidden={message.isMatchWilayah}>
+              <Message.Header>Domisili Petugas ini tidak berada di wilayah Anda.</Message.Header>
             </Message>
-            <Message negative hidden={!message.isShowRegisteredDawisNik}>
-              <Message.Header>NIK Sudah terdaftar sebagai Petugas Dasawisma.</Message.Header>
-              <Message.List>
-                <Message.Item>Nama : <b>{form.nikPetugasNama}</b></Message.Item>
-                <Message.Item>Alamat Domisili : <b>{form.nikPetugasDomisili}</b></Message.Item>
-                <Message.Item>RT Tugas : <b>{form.nikPetugasTugas}</b></Message.Item>
-              </Message.List>
-            </Message>
-            <Message negative hidden={!message.isShowNotDkiNik}>
-              <Message.Header>NIK tidak terdaftar sebagai warga Jakarta.</Message.Header>
-            </Message>
-            <Message negative hidden={!message.isShowErrorCapil}>
-              <Message.Header>Koneksi ke Dukcapil Bermasalah, silahkan coba / ulangi beberapa saat lagi atau hubungi
-                call center.</Message.Header>
-            </Message>
-            <Segment hidden={!form.isNikDki} piled>
+            <Segment hidden={!message.isMatchWilayah} piled>
               <Segment raised>
                 <Form.Group widths="equal">
                   <Form.Field required>
@@ -880,6 +988,96 @@ class PetugasTambah extends Component {
                                 error={error.alamatDomisili} onChange={this.handleChangeAlamat} />
                   </Form.Field>
                 </Form.Group>
+                <Form.Group widths="equal">
+                  <Form.Field>
+                    <label>Provinsi Domisili</label>
+                    <Form.Dropdown selection placeholder="Provinsi Domisili" options={provinsiOptions}
+                                   value="31" />
+                  </Form.Field>
+                  <Form.Field>
+                    <label>Kota Domisili</label>
+                    <Form.Dropdown clearable selection placeholder="Kota Domisili" options={kotaDomisiliOptions}
+                                   onChange={this.handleChangeDropdownKotaDomisili}
+                                   value={form.kotaDomisili.kodeKota} />
+                  </Form.Field>
+                </Form.Group>
+                <Form.Group widths="equal">
+                  <Form.Field>
+                    <label>Kecamatan Domisili</label>
+                    <Form.Dropdown clearable selection placeholder="Kecamatan Domisili"
+                                   value={form.kecamatanDomisili.kodeKecamatan} loading={isLoadingKecamatanDomisili}
+                                   options={kecamatanDomisiliOptions}
+                                   onChange={this.handleChangeDropdownKecamatanDomisili} />
+                  </Form.Field>
+                  <Form.Field>
+                    <label>Kelurahan Domisili</label>
+                    <Form.Dropdown clearable selection placeholder="Kelurahan Domisili"
+                                   value={form.kelurahanDomisili.kodeKelurahan} loading={isLoadingKelurahanDomisili}
+                                   options={kelurahanDomisiliOptions}
+                                   onChange={this.handleChangeDropdownKelurahanDomisili} />
+                  </Form.Field>
+                </Form.Group>
+                <Form.Group widths="equal">
+                  <Form.Field>
+                    <label>RW Domisili</label>
+                    <Form.Dropdown clearable selection placeholder="RW Domisili" options={rwDomisiliOptions}
+                                   value={form.rwDomisili.kodeRw} onChange={this.handleChangeDropdownRwDomisili}
+                                   loading={isLoadingRwDomisili} />
+                  </Form.Field>
+                  <Form.Field required>
+                    <label>RT Domisili</label>
+                    <Form.Dropdown clearable selection placeholder="RT Domisili" options={rtDomisiliOptions}
+                                   error={error.rtDomisili} value={form.rtDomisili.kodeRt}
+                                   onChange={this.handleChangeDropdownRtDomisili}
+                                   loading={isLoadingRtDomisili} />
+
+                  </Form.Field>
+                </Form.Group>
+              </Segment>
+              <Segment raised>
+                <Form.Group widths="equal">
+                  <Form.Field disabled>
+                    <label>Provinsi Tugas</label>
+                    <Form.Dropdown selection placeholder="Provinsi Tugas" options={provinsiOptions} value="31" />
+                  </Form.Field>
+                  <Form.Field disabled>
+                    <label>Kota Tugas</label>
+                    <Form.Dropdown clearable selection placeholder="Kota Tugas" options={kotaTugasOptions}
+                                   onChange={this.handleChangeDropdownKotaTugas} value={form.kotaTugas.kodeKota} />
+                  </Form.Field>
+                </Form.Group>
+                <Form.Group widths="equal">
+                  <Form.Field disabled>
+                    <label>Kecamatan Tugas</label>
+                    <Form.Dropdown clearable selection placeholder="Kecamatan Tugas"
+                                   options={kecamatanTugasOptions} value={form.kecamatanTugas.kodeKecamatan}
+                                   onChange={this.handleChangeDropdownKecamatanTugas}
+                                   loading={isLoadingKecamatanTugas} />
+                  </Form.Field>
+                  <Form.Field disabled>
+                    <label>Kelurahan Tugas</label>
+                    <Form.Dropdown clearable selection placeholder="Kelurahan Tugas"
+                                   options={kelurahanTugasOptions} value={form.kelurahanTugas.kodeKelurahan}
+                                   onChange={this.handleChangeDropdownKelurahanTugas}
+                                   loading={isLoadingKelurahanTugas} />
+                  </Form.Field>
+                </Form.Group>
+                <Form.Group widths="equal">
+                  <Form.Field>
+                    <label>RW Tugas</label>
+                    <Form.Dropdown clearable selection placeholder="RW Tugas" options={rwTugasOptions}
+                                   onChange={this.handleChangeDropdownRwTugas} value={form.rwTugas.kodeRw}
+                                   loading={isLoadingRwTugas} />
+                  </Form.Field>
+                  <Form.Field>
+                    <label>RT Tugas</label>
+                    <Form.Dropdown clearable selection placeholder="RT Tugas" options={rtTugasOptions}
+                                   loading={isLoadingRtTugas} onChange={this.handleChangeDropdownRtTugas}
+                                   value={form.rtTugas.kodeRt} />
+                  </Form.Field>
+                </Form.Group>
+              </Segment>
+              <Segment raised>
                 <Form.Group widths="equal">
                   <Form.Field required>
                     <label>Jenis Kelamin</label>
@@ -945,97 +1143,6 @@ class PetugasTambah extends Component {
                     <Form.Input fluid id="noSkLurah" value={form.noSkLurah}
                                 placeholder="Nomor SK Lurah"
                                 onChange={this.handleChangeNomorSkLurah} />
-                  </Form.Field>
-                </Form.Group>
-              </Segment>
-              <Segment raised>
-                <Form.Group widths="equal">
-                  <Form.Field>
-                    <label>Provinsi Domisili</label>
-                    <Form.Dropdown selection placeholder="Provinsi Domisili" options={provinsiDomisiliOptions}
-                                   value={form.provinsiDomisili.kodeProvinsi} />
-                  </Form.Field>
-                  <Form.Field>
-                    <label>Kota Domisili</label>
-                    <Form.Dropdown clearable selection placeholder="Kota Domisili" options={kotaDomisiliOptions}
-                                   onChange={this.handleChangeDropdownKotaDomisili}
-                                   value={form.kotaDomisili.kodeKota} />
-                  </Form.Field>
-                </Form.Group>
-                <Form.Group widths="equal">
-                  <Form.Field>
-                    <label>Kecamatan Domisili</label>
-                    <Form.Dropdown clearable selection placeholder="Kecamatan Domisili"
-                                   value={form.kecamatanDomisili.kodeKecamatan} loading={isLoadingKecamatanDomisili}
-                                   options={kecamatanDomisiliOptions}
-                                   onChange={this.handleChangeDropdownKecamatanDomisili} />
-                  </Form.Field>
-                  <Form.Field>
-                    <label>Kelurahan Domisili</label>
-                    <Form.Dropdown clearable selection placeholder="Kelurahan Domisili"
-                                   value={form.kelurahanDomisili.kodeKelurahan} loading={isLoadingKelurahanDomisili}
-                                   options={kelurahanDomisiliOptions}
-                                   onChange={this.handleChangeDropdownKelurahanDomisili} />
-                  </Form.Field>
-                </Form.Group>
-                <Form.Group widths="equal">
-                  <Form.Field>
-                    <label>RW Domisili</label>
-                    <Form.Dropdown clearable selection placeholder="RW Domisili" options={rwDomisiliOptions}
-                                   value={form.rwDomisili.kodeRw} onChange={this.handleChangeDropdownRwDomisili}
-                                   loading={isLoadingRwDomisili} />
-                  </Form.Field>
-                  <Form.Field required>
-                    <label>RT Domisili</label>
-                    <Form.Dropdown clearable selection placeholder="RT Domisili" options={rtDomisiliOptions}
-                                   error={error.rtDomisili} value={form.rtDomisili.kodeRt}
-                                   onChange={this.handleChangeDropdownRtDomisili}
-                                   loading={isLoadingRtDomisili} />
-
-                  </Form.Field>
-                </Form.Group>
-              </Segment>
-              <Segment raised>
-                <Form.Group widths="equal">
-                  <Form.Field>
-                    <label>Provinsi Tugas</label>
-                    <Form.Dropdown selection placeholder="Provinsi Tugas" options={provinsiTugasOptions}
-                                   value={form.provinsiTugas.kodeProvinsi} />
-                  </Form.Field>
-                  <Form.Field>
-                    <label>Kota Tugas</label>
-                    <Form.Dropdown clearable selection placeholder="Kota Tugas" options={kotaTugasOptions}
-                                   onChange={this.handleChangeDropdownKotaTugas} value={form.kotaTugas.kodeKota} />
-                  </Form.Field>
-                </Form.Group>
-                <Form.Group widths="equal">
-                  <Form.Field>
-                    <label>Kecamatan Tugas</label>
-                    <Form.Dropdown clearable selection placeholder="Kecamatan Tugas"
-                                   options={kecamatanTugasOptions} value={form.kecamatanTugas.kodeKecamatan}
-                                   onChange={this.handleChangeDropdownKecamatanTugas}
-                                   loading={isLoadingKecamatanTugas} />
-                  </Form.Field>
-                  <Form.Field>
-                    <label>Kelurahan Tugas</label>
-                    <Form.Dropdown clearable selection placeholder="Kelurahan Tugas"
-                                   options={kelurahanTugasOptions} value={form.kelurahanTugas.kodeKelurahan}
-                                   onChange={this.handleChangeDropdownKelurahanTugas}
-                                   loading={isLoadingKelurahanTugas} />
-                  </Form.Field>
-                </Form.Group>
-                <Form.Group widths="equal">
-                  <Form.Field>
-                    <label>RW Tugas</label>
-                    <Form.Dropdown clearable selection placeholder="RW Tugas" options={rwTugasOptions}
-                                   onChange={this.handleChangeDropdownRwTugas} value={form.rwTugas.kodeRw}
-                                   loading={isLoadingRwTugas} />
-                  </Form.Field>
-                  <Form.Field required>
-                    <label>RT Tugas</label>
-                    <Form.Dropdown clearable selection placeholder="RT Tugas" options={rtTugasOptions}
-                                   error={error.rtTugas} loading={isLoadingRtTugas}
-                                   onChange={this.handleChangeDropdownRtTugas} value={form.rtTugas.kodeRt} />
                   </Form.Field>
                 </Form.Group>
               </Segment>
@@ -1130,14 +1237,18 @@ class PetugasTambah extends Component {
                 </Form.Group>
               </Segment>
             </Segment>
-            <Button positive type="submit" onClick={this.handleSavePetugas} disabled={!form.isNikDki}
-                    floated={"right"}> Simpan </Button>
+            <Button negative floated="left" onClick={() => this.handleDeletePetugas(form)}
+                    disabled={!message.isMatchWilayah}>
+              Hapus
+            </Button>
+            <Button positive floated="right" type="submit" onClick={this.handleSavePetugas}
+                    disabled={!message.isMatchWilayah}>
+              Simpan
+            </Button>
           </Form>
+          <ConfirmationModal modal={modal} />
           <ToastContainer position="top-center" autoClose={3500} hideProgressBar={false} newestOnTop closeOnClick
                           rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-          <Dimmer inverted active={isLoadingNik}>
-            <Loader>Cek NIK Ke system Carik -- Dinas Kependudukan & Catatan Sipil</Loader>
-          </Dimmer>
         </Container>
       );
     } else {
@@ -1146,4 +1257,4 @@ class PetugasTambah extends Component {
   }
 }
 
-export default withKeycloak(PetugasTambah);
+export default withKeycloak(PetugasDetailDomisili);

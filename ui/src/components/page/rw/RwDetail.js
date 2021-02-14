@@ -4,12 +4,12 @@ import { handleLogError, isKecamatan, isKelurahan, isKota, isProvinsi, isPusdati
 import { Redirect } from "react-router-dom";
 import { kelompokApi } from "../../util/KelompokApi";
 import { toast, ToastContainer } from "react-toastify";
-import { Button, Container, Divider, Form, Header } from "semantic-ui-react";
+import { Button, Container, Divider, Form, Header, Icon, Segment } from "semantic-ui-react";
 import ConfirmationModal from "../../util/ConfirmationModal";
 
 class RwDetail extends Component {
   formInitialState = {
-    kelurahan: { kodeKelurahan: "" },
+    kelurahan: { kodeKelurahan: "", namaKelurahan: "" },
     kodeRw: "",
     labelRw: "",
     namaKetuaRw: "",
@@ -56,8 +56,9 @@ class RwDetail extends Component {
         const response = await kelompokApi.getRwByKode(param, keycloak.token);
         const rw = response.data;
         const kodeKelurahan = rw.kelurahan ? rw.kelurahan.kodeKelurahan : "";
+        const namaKelurahan = rw.kelurahan ? rw.kelurahan.namaKelurahan : "";
         const form = {
-          kelurahan: { kodeKelurahan: kodeKelurahan },
+          kelurahan: { kodeKelurahan: kodeKelurahan, namaKelurahan: namaKelurahan },
           kodeRw: rw.kodeRw,
           labelRw: rw.labelRw,
           namaKetuaRw: rw.namaKetuaRw,
@@ -135,6 +136,12 @@ class RwDetail extends Component {
       form.labelRwError = {
         pointing: "below",
         content: "Label Rw harus 3 digit"
+      };
+    } else if (form.labelRw.trim() === "000") {
+      labelRwError = true;
+      form.labelRwError = {
+        pointing: "below",
+        content: "Label Rw tidak boleh 000"
       };
     }
     if (form.kelurahan.kodeKelurahan.trim() === "") {
@@ -263,6 +270,14 @@ class RwDetail extends Component {
     };
     this.setState({ modal, deleteRw: rw });
   };
+  handleClickBack = () => this.props.history.push("/rw");
+  handleKeyPressBack = (e) => {
+    if (e.charCode === 32 || e.charCode === 13) {
+      // Prevent the default action to stop scrolling when space is pressed
+      e.preventDefault();
+      this.props.history.push("/rw");
+    }
+  };
 
   render() {
     const { keycloak } = this.props;
@@ -282,96 +297,107 @@ class RwDetail extends Component {
     ) {
       return (
         <Container className="isi" text>
-          <Header as="h1" textAlign="center">
-            Tambah RW
-          </Header>
+          {this.props.match.params.kodeRw === "tambah" ? (
+            <Header as="h1" textAlign="center"> Tambah Rw </Header>
+          ) : (
+            <Header as="h1" textAlign="center">RW {form.labelRw} Kelurahan {form.kelurahan.namaKelurahan}</Header>
+          )}
+          <Button animated basic color="grey" onClick={this.handleClickBack} onKeyPress={this.handleKeyPressBack}>
+            <Button.Content hidden>Kembali</Button.Content>
+            <Button.Content visible>
+              <Icon name="arrow left" />
+            </Button.Content>
+          </Button>
+          <Divider />
           <Form loading={isLoadingForm}>
-            <Form.Field required>
-              <label>Kode RW (Tidak Dapat Diubah)</label>
-              <Form.Input
-                fluid
-                readOnly
-                placeholder="Kode RW"
-                maxLength="12"
-                id="kodeRw"
-                error={form.kodeRwError}
-                onChange={this.handleChangeNumber}
-                value={form.kodeRw}
-              />
-            </Form.Field>
-            <Divider />
-            <Form.Field>
-              <label>Kelurahan</label>
-              <Form.Dropdown
-                placeholder="Kelurahan"
-                noResultsMessage="Tidak ada nama Kelurahan..."
-                onChange={this.handleChangeDropdown}
-                search
-                disabled={readOnly}
-                options={kelurahanOptions}
-                error={form.kelurahanError}
-                selection
-                clearable
-                value={
-                  form.kelurahan.kodeKelurahan === ""
-                    ? undefined
-                    : form.kelurahan.kodeKelurahan
-                }
-              />
-            </Form.Field>
-            <Form.Field required>
-              <label>Label RW (3 digit)</label>
-              <Form.Input
-                fluid
-                readOnly={readOnly}
-                placeholder="Label RW"
-                error={form.labelRwError}
-                maxLength="3"
-                id="labelRw"
-                onChange={this.handleChangeLabelRw}
-                value={form.labelRw}
-              />
-            </Form.Field>
-            <Form.Field>
-              <label>Nama Ketua RW</label>
-              <Form.Input
-                fluid
-                placeholder="Nama Ketua RW"
-                id="namaKetuaRw"
-                onChange={this.handleChange}
-                value={form.namaKetuaRw}
-              />
-            </Form.Field>
-            <Form.Field>
-              <label>Nomor Handphone RW</label>
-              <Form.Input
-                fluid
-                placeholder="Nomor Handphone RW"
-                id="noHpRw"
-                onChange={this.handleChangeNumber}
-                value={form.noHpRw}
-              />
-            </Form.Field>
-            <Form.Field>
-              <label>Nomor Telp RW</label>
-              <Form.Input
-                fluid
-                placeholder="Nomor Telp RW"
-                id="noTelpRw"
-                onChange={this.handleChangeNumber}
-                value={form.noTelpRw}
-              />
-            </Form.Field>
-            <Form.Field>
-              <label>Nomor Telp RW (Alternatif)</label>
-              <Form.Input
-                fluid
-                placeholder="Nomor Telp RW (Alternatif)"
-                id="noTelpRwAlt"
-                onChange={this.handleChangeNumber}
-                value={form.noTelpRwAlt}
-              />
-            </Form.Field>
+            <Segment piled>
+              <Form.Field required>
+                <label>Kode RW (Tidak Dapat Diubah)</label>
+                <Form.Input
+                  fluid
+                  readOnly
+                  placeholder="Kode RW"
+                  maxLength="12"
+                  id="kodeRw"
+                  error={form.kodeRwError}
+                  onChange={this.handleChangeNumber}
+                  value={form.kodeRw}
+                />
+              </Form.Field>
+              <Divider />
+              <Form.Field>
+                <label>Kelurahan</label>
+                <Form.Dropdown
+                  placeholder="Kelurahan"
+                  noResultsMessage="Tidak ada nama Kelurahan..."
+                  onChange={this.handleChangeDropdown}
+                  search
+                  disabled={readOnly}
+                  options={kelurahanOptions}
+                  error={form.kelurahanError}
+                  selection
+                  clearable
+                  value={
+                    form.kelurahan.kodeKelurahan === ""
+                      ? undefined
+                      : form.kelurahan.kodeKelurahan
+                  }
+                />
+              </Form.Field>
+              <Form.Field required>
+                <label>Label RW (3 digit)</label>
+                <Form.Input
+                  fluid
+                  readOnly={readOnly}
+                  placeholder="Label RW"
+                  error={form.labelRwError}
+                  maxLength="3"
+                  id="labelRw"
+                  onChange={this.handleChangeLabelRw}
+                  value={form.labelRw}
+                />
+              </Form.Field>
+              <Form.Field>
+                <label>Nama Ketua RW</label>
+                <Form.Input
+                  fluid
+                  placeholder="Nama Ketua RW"
+                  id="namaKetuaRw"
+                  onChange={this.handleChange}
+                  value={form.namaKetuaRw}
+                />
+              </Form.Field>
+              <Form.Field>
+                <label>Nomor Handphone RW</label>
+                <Form.Input
+                  fluid
+                  placeholder="Nomor Handphone RW"
+                  id="noHpRw"
+                  onChange={this.handleChangeNumber}
+                  value={form.noHpRw}
+                />
+              </Form.Field>
+              <Form.Field>
+                <label>Nomor Telp RW</label>
+                <Form.Input
+                  fluid
+                  placeholder="Nomor Telp RW"
+                  id="noTelpRw"
+                  onChange={this.handleChangeNumber}
+                  value={form.noTelpRw}
+                />
+              </Form.Field>
+              <Form.Field>
+                <label>Nomor Telp RW (Alternatif)</label>
+                <Form.Input
+                  fluid
+                  placeholder="Nomor Telp RW (Alternatif)"
+                  id="noTelpRwAlt"
+                  onChange={this.handleChangeNumber}
+                  value={form.noTelpRwAlt}
+                />
+              </Form.Field>
+            </Segment>
             {this.props.match.params.kodeRw !== "tambah" ? (
               <Button
                 negative

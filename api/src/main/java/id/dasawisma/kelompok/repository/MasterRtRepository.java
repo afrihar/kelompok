@@ -7,10 +7,13 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MasterRtRepository extends JpaRepository<MasterRt, Long>, JpaSpecificationExecutor<MasterRt> {
-
-  Iterable<MasterRt> findAllByKodeRtStartingWithOrderByRw_KodeRwAscKodeRtAsc(String kodeRt);
-
   Iterable<MasterRt> findAllByOrderByRw_KodeRwAscLabelRtAsc();
+
+  Iterable<MasterRt> findAllByRw_KodeRwStartingWithOrderByRw_KodeRwAscKodeRtAsc(String kodeRw);
+
+  Iterable<MasterRt> findAllByRw_KodeRwOrderByRw_KodeRwAscKodeRtAsc(String kodeRw);
+
+  Iterable<MasterRt> findAllByKodeRt(String kodeRt);
 
   MasterRt findByKodeRt(String kodeRt);
 }

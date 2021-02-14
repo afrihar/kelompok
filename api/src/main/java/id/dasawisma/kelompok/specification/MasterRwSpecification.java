@@ -34,7 +34,7 @@ public class MasterRwSpecification implements Specification<MasterRw> {
   }
 
   private Predicate buildFilterByPrincipal(Root<MasterRw> root, CriteriaBuilder cb) {
-    return cb.like(root.get("kodeRw"), PrincipalUtil.getKodeWilayah() + "%");
+    return cb.like(root.get("kelurahan").get("kodeKelurahan"), PrincipalUtil.getKodeWilayah() + "%");
   }
 
   private void getAllRw(Root<MasterRw> root, CriteriaBuilder cb, Predicate predicate) {

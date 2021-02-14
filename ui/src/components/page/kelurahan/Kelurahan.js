@@ -12,7 +12,7 @@ import {
   Loader,
   Pagination,
   Popup,
-  Table,
+  Table
 } from "semantic-ui-react";
 import {
   alphanumeric,
@@ -21,7 +21,7 @@ import {
   isKota,
   isProvinsi,
   isPusdatin,
-  itemPerPage,
+  itemPerPage
 } from "../../util/Helpers";
 import { kelompokApi } from "../../util/KelompokApi";
 import { withKeycloak } from "@react-keycloak/web";
@@ -37,7 +37,7 @@ class Kelurahan extends Component {
     isLoadingPage: false,
     isLoadingSearch: false,
     responseKelurahan: [],
-    kecamatanOptions: [],
+    kecamatanOptions: []
   };
 
   async componentDidMount() {
@@ -207,7 +207,7 @@ class Kelurahan extends Component {
         isLoadingSearch,
         responseKelurahan,
         kecamatanOptions,
-        filter,
+        filter
       } = this.state;
       let popupMessage = "";
       if (!filterValid) {
@@ -316,7 +316,7 @@ class Kelurahan extends Component {
                           {kelurahan.kecamatan.namaKecamatan}
                         </Table.Cell>
                       ) : (
-                        <Table.Cell error>
+                        <Table.Cell textAlign='center' error>
                           {" "}
                           <Icon name="attention" /> Tidak Punya Kecamatan
                         </Table.Cell>
@@ -352,19 +352,19 @@ class Kelurahan extends Component {
                         totalPages={responseKelurahan.totalPages}
                         firstItem={{
                           content: <Icon name="angle double left" />,
-                          icon: true,
+                          icon: true
                         }}
                         lastItem={{
                           content: <Icon name="angle double right" />,
-                          icon: true,
+                          icon: true
                         }}
                         prevItem={{
                           content: <Icon name="angle left" />,
-                          icon: true,
+                          icon: true
                         }}
                         nextItem={{
                           content: <Icon name="angle right" />,
-                          icon: true,
+                          icon: true
                         }}
                         pointing
                         secondary

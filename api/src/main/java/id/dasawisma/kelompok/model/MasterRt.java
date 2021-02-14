@@ -31,6 +31,14 @@ public class MasterRt {
   @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
   @JoinColumn(name = "kode_rw", referencedColumnName = "kode_rw")
   private MasterRw rw;
+  @Column(name = "target_bangunan")
+  private Integer targetBangunan;
+  @Column(name = "target_rumah_tangga")
+  private Integer targetRumahTangga;
+  @Column(name = "target_keluarga")
+  private Integer targetKeluarga;
+  @Column(name = "target_individu")
+  private Integer targetIndividu;
   @Embedded
   @JsonIgnore
   private AuditMaster auditMaster = new AuditMaster();

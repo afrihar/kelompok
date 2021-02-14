@@ -29,7 +29,7 @@ public class MasterKecamatanSpecification implements Specification<MasterKecamat
   }
 
   private Predicate buildFilterByPrincipal(Root<MasterKecamatan> root, CriteriaBuilder cb) {
-    return cb.like(root.get("kodeKecamatan"), PrincipalUtil.getKodeWilayah() + "%");
+    return cb.like(root.get("kota").get("kodeKota"), PrincipalUtil.getKodeWilayah() + "%");
   }
 
   private void getAllKecamatan(Root<MasterKecamatan> root, CriteriaBuilder cb, Predicate predicate) {

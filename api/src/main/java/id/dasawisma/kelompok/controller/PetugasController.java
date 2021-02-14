@@ -3,6 +3,7 @@ package id.dasawisma.kelompok.controller;
 import id.dasawisma.kelompok.exception.ApiRequestException;
 import id.dasawisma.kelompok.model.*;
 import id.dasawisma.kelompok.service.*;
+import id.dasawisma.kelompok.specification.PetugasByDomisiliSpecification;
 import id.dasawisma.kelompok.specification.PetugasSpecification;
 import id.dasawisma.kelompok.util.PageableUtil;
 import id.dasawisma.kelompok.util.PrincipalUtil;
@@ -29,6 +30,7 @@ import static id.dasawisma.kelompok.config.SwaggerConfig.BEARER_KEY_SECURITY_SCH
 @RestController
 @RequestMapping("/api/petugas")
 public class PetugasController {
+  private final ValidationErrorService validationErrorService;
   private final PetugasService petugasService;
   private final OptionsService optionsService;
   private final MasterProvinsiService provinsiService;
@@ -37,7 +39,7 @@ public class PetugasController {
   private final MasterKelurahanService kelurahanService;
   private final MasterRwService rwService;
   private final MasterRtService rtService;
-  private final ValidationErrorService validationErrorService;
+  private final KelompokDasawismaService kelompokService;
   @Value("${kelompok.soa-auth-user}")
   private String authUser;
   @Value("${kelompok.soa-auth-pass}")
@@ -48,6 +50,30 @@ public class PetugasController {
   private String pget;
   @Value("${kelompok.soa-pusr}")
   private String pusr;
+
+  @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+  @PostMapping("/kelompok")
+  public ResponseEntity<?> saveOrUpdatePetugasKelompok(@Valid @RequestBody PetugasKelompok petugasKelompok, BindingResult result) {
+    ResponseEntity<?> errorMap = validationErrorService.ValidationService(result);
+    if (errorMap != null) return errorMap;
+    Iterable<KelompokDasawisma> oldKelompok = kelompokService.findAllByPetugasKelompok_NikOrderByNamaKelompok(petugasKelompok.nik);
+    oldKelompok.forEach(ok->{
+      KelompokDasawisma oldKelompokDasawisma = kelompokService.findById(ok.getId());
+      oldKelompokDasawisma.setRtKelompok(rtService.findByKode(petugasKelompok.rtKelompok));
+      oldKelompokDasawisma.setPetugasKelompok(null);
+      kelompokService.saveOrUpdate(oldKelompokDasawisma);
+    });
+    List<Object> response = new ArrayList<>();
+    petugasKelompok.getIdKelompok().forEach(kel -> {
+          KelompokDasawisma kelompokDasawisma = kelompokService.findById(kel);
+          kelompokDasawisma.setRtKelompok(rtService.findByKode(petugasKelompok.rtKelompok));
+          kelompokDasawisma.setPetugasKelompok(petugasService.findByNik(petugasKelompok.nik));
+          KelompokDasawisma petugasKelompokSave = kelompokService.saveOrUpdate(kelompokDasawisma);
+          response.add(petugasKelompokSave);
+        }
+    );
+    return new ResponseEntity<>(response, HttpStatus.CREATED);
+  }
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
   @PostMapping
@@ -96,6 +122,12 @@ public class PetugasController {
     } else {
       petugas.setRtDomisili(null);
     }
+    if (petugas.getRtTugas() != null && !petugas.getRtTugas().getKodeRt().isBlank()) {
+      MasterRt rt = rtService.findByKode(petugas.getRtTugas().getKodeRt());
+      petugas.setRtTugas(rt);
+    } else {
+      petugas.setRtTugas(null);
+    }
     if (petugas.getProvinsiEmergencyCall() != null && !petugas.getProvinsiEmergencyCall().getKodeProvinsi().isBlank()) {
       MasterProvinsi provinsi = provinsiService.findByKode(petugas.getProvinsiEmergencyCall().getKodeProvinsi());
       petugas.setProvinsiEmergencyCall(provinsi);
@@ -108,6 +140,8 @@ public class PetugasController {
     } else {
       petugas.setKotaEmergencyCall(null);
     }
+    if (petugas.getEmail().equals("")) petugas.setEmail(null);
+    if (petugas.getNoRekening().equals("")) petugas.setNoRekening(null);
     Petugas PetugasSave = petugasService.saveOrUpdate(petugas);
     return new ResponseEntity<>(PetugasSave, HttpStatus.CREATED);
   }
@@ -159,6 +193,41 @@ public class PetugasController {
   }
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+  @GetMapping("/domisili")
+  public ResponseEntity<Map<String, Object>> getAllPetugasDomisiliPageable(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "rtTugas_KodeRt") String sortBy,
+      @RequestParam(defaultValue = "ASC") String direction,
+      @RequestParam(required = false) String filter,
+      @RequestParam(required = false) String filterWilayah
+  ) {
+    try {
+      Pageable paging = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.valueOf(direction), sortBy));
+      Petugas filterPetugas = new Petugas();
+      if (filter != null) {
+        filterPetugas.setNik(filter);
+        filterPetugas.setNama(filter);
+        filterPetugas.setNoHpPetugas(filter);
+        filterPetugas.setNoTelpPetugas(filter);
+        filterPetugas.setEmail(filter);
+        filterPetugas.setNoRekening(filter);
+        filterPetugas.setNoNpwp(filter);
+      }
+      if (filterWilayah != null) {
+        MasterRt filterMasterRt = new MasterRt();
+        filterMasterRt.setKodeRt(filterWilayah);
+        filterPetugas.setRtTugas(filterMasterRt);
+      }
+      return new ResponseEntity<>(PageableUtil.buildPageable(petugasService.findAll(
+          new PetugasByDomisiliSpecification(filterPetugas), paging)
+      ), HttpStatus.OK);
+    } catch (Exception e) {
+      return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
   @GetMapping("/{nikPetugas}")
   public ResponseEntity<?> getPetugasByNik(@PathVariable String nikPetugas) {
     Petugas petugas = petugasService.findByNik(nikPetugas);
@@ -180,112 +249,232 @@ public class PetugasController {
   }
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
-  @GetMapping("/options-kota")
-  public ResponseEntity<?> getPetugasOptionsKota() {
-    Iterable<MasterKota> kota;
-    if (PrincipalUtil.isPusdatin()) {
-      kota = kotaService.findAllByKodeKotaStartingWith("31");
-    } else if (PrincipalUtil.isProvinsi()) {
-      kota = kotaService.findAllByKodeKotaStartingWith(PrincipalUtil.getKodeWilayah());
-    } else {
-      kota = kotaService.findAllByKodeKotaStartingWith(PrincipalUtil.getKodeWilayah().substring(0, 4));
-    }
+  @GetMapping("/options-kota-domisili")
+  public ResponseEntity<?> getPetugasOptionsKotaDomisili() {
+    Iterable<MasterKota> kota = null;
+    if (PrincipalUtil.isPusdatin())
+      kota = kotaService.findAllByProvinsi_KodeProvinsiOrderByNamaKotaAsc("31");
+    else if (PrincipalUtil.isProvinsi())
+      kota = kotaService.findAllByProvinsi_KodeProvinsiOrderByNamaKotaAsc(PrincipalUtil.getKodeProvinsi());
+    else if (PrincipalUtil.isKota() || PrincipalUtil.isKecamatan() || PrincipalUtil.isKelurahan() || PrincipalUtil.isRw() || PrincipalUtil.isRt())
+      kota = kotaService.findAllByKodeKota(PrincipalUtil.getKodeKota());
     List<Map<String, Object>> response = new ArrayList<>();
-    kota.forEach(k -> {
-      Map<String, Object> map = new HashMap<>();
-      map.put("key", k.getKodeKota());
-      map.put("value", k.getKodeKota());
-      map.put("text", k.getNamaKota());
-      response.add(map);
-    });
+    if (kota != null) {
+      kota.forEach(k -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", k.getKodeKota());
+        map.put("value", k.getKodeKota());
+        map.put("text", k.getNamaKota());
+        response.add(map);
+      });
+    }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
-  @GetMapping("/options-kecamatan/{kodeKota}")
-  public ResponseEntity<?> getPetugasOptionsKecamatan(@PathVariable String kodeKota) {
-    Iterable<MasterKecamatan> kecamatan;
-    if (PrincipalUtil.isPusdatin() || PrincipalUtil.isProvinsi()) {
-      kecamatan = kecamatanService.findAllByKodeKecamatanStartingWith(kodeKota);
-    } else if (PrincipalUtil.isKota()) {
-      kecamatan = kecamatanService.findAllByKodeKecamatanStartingWith(PrincipalUtil.getKodeWilayah());
-    } else {
-      kecamatan = kecamatanService.findAllByKodeKecamatanStartingWith(PrincipalUtil.getKodeWilayah().substring(0, 6));
-    }
+  @GetMapping("/options-kecamatan-domisili/{kodeKota}")
+  public ResponseEntity<?> getPetugasOptionsKecamatanDomisili(@PathVariable String kodeKota) {
+    Iterable<MasterKecamatan> kecamatan = null;
+    if (PrincipalUtil.isPusdatin() || PrincipalUtil.isProvinsi())
+      kecamatan = kecamatanService.findAllByKota_KodeKotaOrderByNamaKecamatanAsc(kodeKota);
+    else if (PrincipalUtil.isKota())
+      kecamatan = kecamatanService.findAllByKota_KodeKotaOrderByNamaKecamatanAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isKecamatan() || PrincipalUtil.isKelurahan() || PrincipalUtil.isRw() || PrincipalUtil.isRt())
+      kecamatan = kecamatanService.findAllByKodeKecamatan(PrincipalUtil.getKodeKecamatan());
     List<Map<String, Object>> response = new ArrayList<>();
-    kecamatan.forEach(kec -> {
-      Map<String, Object> map = new HashMap<>();
-      map.put("key", kec.getKodeKecamatan());
-      map.put("value", kec.getKodeKecamatan());
-      map.put("text", kec.getNamaKecamatan());
-      response.add(map);
-    });
+    if (kecamatan != null) {
+      kecamatan.forEach(kec -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", kec.getKodeKecamatan());
+        map.put("value", kec.getKodeKecamatan());
+        map.put("text", kec.getNamaKecamatan());
+        response.add(map);
+      });
+    }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
-  @GetMapping("/options-kelurahan/{kodeKecamatan}")
-  public ResponseEntity<?> getPetugasOptionsKelurahan(@PathVariable String kodeKecamatan) {
-    Iterable<MasterKelurahan> kelurahan;
-    if (PrincipalUtil.isPusdatin() || PrincipalUtil.isProvinsi() || PrincipalUtil.isKota()) {
-      kelurahan = kelurahanService.findAllByKodeKelurahanStartingWith(kodeKecamatan);
-    } else if (PrincipalUtil.isKecamatan()) {
-      kelurahan = kelurahanService.findAllByKodeKelurahanStartingWith(PrincipalUtil.getKodeWilayah());
-    } else {
-      kelurahan = kelurahanService.findAllByKodeKelurahanStartingWith(PrincipalUtil.getKodeWilayah().substring(0, 9));
-    }
+  @GetMapping("/options-kelurahan-domisili/{kodeKecamatan}")
+  public ResponseEntity<?> getPetugasOptionsKelurahanDomisili(@PathVariable String kodeKecamatan) {
+    Iterable<MasterKelurahan> kelurahan = null;
+    if (PrincipalUtil.isPusdatin() || PrincipalUtil.isProvinsi() || PrincipalUtil.isKota())
+      kelurahan = kelurahanService.findAllByKecamatan_KodeKecamatanOrderByNamaKelurahan(kodeKecamatan);
+    else if (PrincipalUtil.isKecamatan())
+      kelurahan = kelurahanService.findAllByKecamatan_KodeKecamatanOrderByNamaKelurahan(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isKelurahan() || PrincipalUtil.isRw() || PrincipalUtil.isRt())
+      kelurahan = kelurahanService.findAllByKodeKelurahan(PrincipalUtil.getKodeKelurahan());
     List<Map<String, Object>> response = new ArrayList<>();
-    kelurahan.forEach(kel -> {
-      Map<String, Object> map = new HashMap<>();
-      map.put("key", kel.getKodeKelurahan());
-      map.put("value", kel.getKodeKelurahan());
-      map.put("text", kel.getNamaKelurahan());
-      response.add(map);
-    });
+    if (kelurahan != null) {
+      kelurahan.forEach(kel -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", kel.getKodeKelurahan());
+        map.put("value", kel.getKodeKelurahan());
+        map.put("text", kel.getNamaKelurahan());
+        response.add(map);
+      });
+    }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
-  @GetMapping("/options-rw/{kodeKelurahan}")
-  public ResponseEntity<?> getPetugasOptionsRw(@PathVariable String kodeKelurahan) {
-    Iterable<MasterRw> rw;
-    if (PrincipalUtil.isPusdatin() || PrincipalUtil.isProvinsi() || PrincipalUtil.isKota() || PrincipalUtil.isKecamatan()) {
-      rw = rwService.findAllByKodeRwStartingWithOrderByKelurahan_NamaKelurahanAscLabelRwAsc(kodeKelurahan);
-    } else if (PrincipalUtil.isKelurahan()) {
-      rw = rwService.findAllByKodeRwStartingWithOrderByKelurahan_NamaKelurahanAscLabelRwAsc(PrincipalUtil.getKodeWilayah());
-    } else {
-      rw = rwService.findAllByKodeRwStartingWithOrderByKelurahan_NamaKelurahanAscLabelRwAsc(PrincipalUtil.getKodeWilayah().substring(0, 12));
-    }
+  @GetMapping("/options-rw-domisili/{kodeKelurahan}")
+  public ResponseEntity<?> getPetugasOptionsRwDomisili(@PathVariable String kodeKelurahan) {
+    Iterable<MasterRw> rw = null;
+    if (PrincipalUtil.isPusdatin() || PrincipalUtil.isProvinsi() || PrincipalUtil.isKota() || PrincipalUtil.isKecamatan())
+      rw = rwService.findAllByKelurahan_KodeKelurahanOrderByKelurahan_NamaKelurahanAscLabelRwAsc(kodeKelurahan);
+    else if (PrincipalUtil.isKelurahan())
+      rw = rwService.findAllByKelurahan_KodeKelurahanOrderByKelurahan_NamaKelurahanAscLabelRwAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isRw() || PrincipalUtil.isRt())
+      rw = rwService.findAllByKodeRw(PrincipalUtil.getKodeRw());
     List<Map<String, Object>> response = new ArrayList<>();
-    rw.forEach(r -> {
-      Map<String, Object> map = new HashMap<>();
-      map.put("key", r.getKodeRw());
-      map.put("value", r.getKodeRw());
-      map.put("text", "RW " + r.getLabelRw());
-      response.add(map);
-    });
+    if (rw != null) {
+      rw.forEach(r -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", r.getKodeRw());
+        map.put("value", r.getKodeRw());
+        map.put("text", "RW " + r.getLabelRw());
+        response.add(map);
+      });
+    }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
-  @GetMapping("/options-rt/{kodeRw}")
-  public ResponseEntity<?> getPetugasOptionsRt(@PathVariable String kodeRw) {
-    Iterable<MasterRt> rt;
-    if (PrincipalUtil.isPusdatin() || PrincipalUtil.isProvinsi() || PrincipalUtil.isKota() || PrincipalUtil.isKecamatan() || PrincipalUtil.isKelurahan()) {
-      rt = rtService.findAllByKodeRtStartingWithOrderByRw_KodeRwAscKodeRtAsc(kodeRw);
-    } else if (PrincipalUtil.isRw()) {
-      rt = rtService.findAllByKodeRtStartingWithOrderByRw_KodeRwAscKodeRtAsc(PrincipalUtil.getKodeWilayah());
-    } else {
-      rt = rtService.findAllByKodeRtStartingWithOrderByRw_KodeRwAscKodeRtAsc(PrincipalUtil.getKodeWilayah().substring(0, 15));
-    }
+  @GetMapping("/options-rt-domisili/{kodeRw}")
+  public ResponseEntity<?> getPetugasOptionsRtDomisili(@PathVariable String kodeRw) {
+    Iterable<MasterRt> rt = null;
+    if (PrincipalUtil.isPusdatin() || PrincipalUtil.isProvinsi() || PrincipalUtil.isKota() || PrincipalUtil.isKecamatan() || PrincipalUtil.isKelurahan())
+      rt = rtService.findAllByRw_KodeRwOrderByRw_KodeRwAscKodeRtAsc(kodeRw);
+    else if (PrincipalUtil.isRw())
+      rt = rtService.findAllByRw_KodeRwOrderByRw_KodeRwAscKodeRtAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isRt())
+      rt = rtService.findAllByKodeRt(PrincipalUtil.getKodeRt());
     List<Map<String, Object>> response = new ArrayList<>();
-    rt.forEach(r -> {
-      Map<String, Object> map = new HashMap<>();
-      map.put("key", r.getKodeRt());
-      map.put("value", r.getKodeRt());
-      map.put("text", "RT " + r.getLabelRt());
-      response.add(map);
-    });
+    if (rt != null) {
+      rt.forEach(r -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", r.getKodeRt());
+        map.put("value", r.getKodeRt());
+        map.put("text", "RT " + r.getLabelRt());
+        response.add(map);
+      });
+    }
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+  @GetMapping("/options-kota-tugas")
+  public ResponseEntity<?> getPetugasOptionsKotaTugas() {
+    Iterable<MasterKota> kota = null;
+    if (PrincipalUtil.isPusdatin())
+      kota = kotaService.findAllByProvinsi_KodeProvinsiOrderByNamaKotaAsc("31");
+    else if (PrincipalUtil.isProvinsi())
+      kota = kotaService.findAllByProvinsi_KodeProvinsiOrderByNamaKotaAsc(PrincipalUtil.getKodeProvinsi());
+    else if (PrincipalUtil.isKota() || PrincipalUtil.isKecamatan() || PrincipalUtil.isKelurahan() || PrincipalUtil.isRw() || PrincipalUtil.isRt())
+      kota = kotaService.findAllByKodeKota(PrincipalUtil.getKodeKota());
+    List<Map<String, Object>> response = new ArrayList<>();
+    if (kota != null) {
+      kota.forEach(k -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", k.getKodeKota());
+        map.put("value", k.getKodeKota());
+        map.put("text", k.getNamaKota());
+        response.add(map);
+      });
+    }
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+  @GetMapping("/options-kecamatan-tugas/{kodeKota}")
+  public ResponseEntity<?> getPetugasOptionsKecamatanTugas(@PathVariable String kodeKota) {
+    Iterable<MasterKecamatan> kecamatan = null;
+    if (PrincipalUtil.isPusdatin() || PrincipalUtil.isProvinsi())
+      kecamatan = kecamatanService.findAllByKota_KodeKotaOrderByNamaKecamatanAsc(kodeKota);
+    else if (PrincipalUtil.isKota())
+      kecamatan = kecamatanService.findAllByKota_KodeKotaOrderByNamaKecamatanAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isKecamatan() || PrincipalUtil.isKelurahan() || PrincipalUtil.isRw() || PrincipalUtil.isRt())
+      kecamatan = kecamatanService.findAllByKodeKecamatan(PrincipalUtil.getKodeKecamatan());
+    List<Map<String, Object>> response = new ArrayList<>();
+    if (kecamatan != null) {
+      kecamatan.forEach(kec -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", kec.getKodeKecamatan());
+        map.put("value", kec.getKodeKecamatan());
+        map.put("text", kec.getNamaKecamatan());
+        response.add(map);
+      });
+    }
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+  @GetMapping("/options-kelurahan-tugas/{kodeKecamatan}")
+  public ResponseEntity<?> getPetugasOptionsKelurahanTugas(@PathVariable String kodeKecamatan) {
+    Iterable<MasterKelurahan> kelurahan = null;
+    if (PrincipalUtil.isPusdatin() || PrincipalUtil.isProvinsi() || PrincipalUtil.isKota())
+      kelurahan = kelurahanService.findAllByKecamatan_KodeKecamatanOrderByNamaKelurahan(kodeKecamatan);
+    else if (PrincipalUtil.isKecamatan())
+      kelurahan = kelurahanService.findAllByKecamatan_KodeKecamatanOrderByNamaKelurahan(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isKelurahan() || PrincipalUtil.isRw() || PrincipalUtil.isRt())
+      kelurahan = kelurahanService.findAllByKodeKelurahan(PrincipalUtil.getKodeKelurahan());
+    List<Map<String, Object>> response = new ArrayList<>();
+    if (kelurahan != null) {
+      kelurahan.forEach(kel -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", kel.getKodeKelurahan());
+        map.put("value", kel.getKodeKelurahan());
+        map.put("text", kel.getNamaKelurahan());
+        response.add(map);
+      });
+    }
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+  @GetMapping("/options-rw-tugas/{kodeKelurahan}")
+  public ResponseEntity<?> getPetugasOptionsRwTugas(@PathVariable String kodeKelurahan) {
+    Iterable<MasterRw> rw = null;
+    if (PrincipalUtil.isPusdatin() || PrincipalUtil.isProvinsi() || PrincipalUtil.isKota() || PrincipalUtil.isKecamatan())
+      rw = rwService.findAllByKelurahan_KodeKelurahanOrderByKelurahan_NamaKelurahanAscLabelRwAsc(kodeKelurahan);
+    else if (PrincipalUtil.isKelurahan())
+      rw = rwService.findAllByKelurahan_KodeKelurahanOrderByKelurahan_NamaKelurahanAscLabelRwAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isRw() || PrincipalUtil.isRt())
+      rw = rwService.findAllByKodeRw(PrincipalUtil.getKodeRw());
+    List<Map<String, Object>> response = new ArrayList<>();
+    if (rw != null) {
+      rw.forEach(r -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", r.getKodeRw());
+        map.put("value", r.getKodeRw());
+        map.put("text", "RW " + r.getLabelRw());
+        response.add(map);
+      });
+    }
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+  @GetMapping("/options-rt-tugas/{kodeRw}")
+  public ResponseEntity<?> getPetugasOptionsRtTugas(@PathVariable String kodeRw) {
+    Iterable<MasterRt> rt = null;
+    if (PrincipalUtil.isPusdatin() || PrincipalUtil.isProvinsi() || PrincipalUtil.isKota() || PrincipalUtil.isKecamatan() || PrincipalUtil.isKelurahan())
+      rt = rtService.findAllByRw_KodeRwOrderByRw_KodeRwAscKodeRtAsc(kodeRw);
+    else if (PrincipalUtil.isRw())
+      rt = rtService.findAllByRw_KodeRwOrderByRw_KodeRwAscKodeRtAsc(PrincipalUtil.getKodeWilayah());
+    else if (PrincipalUtil.isRt())
+      rt = rtService.findAllByKodeRt(PrincipalUtil.getKodeRt());
+    List<Map<String, Object>> response = new ArrayList<>();
+    if (rt != null) {
+      rt.forEach(r -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", r.getKodeRt());
+        map.put("value", r.getKodeRt());
+        map.put("text", "RT " + r.getLabelRt());
+        response.add(map);
+      });
+    }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
@@ -393,7 +582,7 @@ public class PetugasController {
   @GetMapping("/options-kota-ec/{kodeProvinsi}")
   public ResponseEntity<?> getPetugasOptionsKotaEc(@PathVariable String kodeProvinsi) {
     Iterable<MasterKota> kota;
-    kota = kotaService.findAllByKodeKotaStartingWith(kodeProvinsi);
+    kota = kotaService.findAllByProvinsi_KodeProvinsiOrderByNamaKotaAsc(kodeProvinsi);
     List<Map<String, Object>> response = new ArrayList<>();
     kota.forEach(k -> {
       Map<String, Object> map = new HashMap<>();
@@ -405,4 +594,13 @@ public class PetugasController {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
+  @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+  @GetMapping("/kelompok/{nik}")
+  public ResponseEntity<?> getPetugasKelompok(@PathVariable String nik) {
+    Iterable<KelompokDasawisma> kelompok;
+    kelompok = kelompokService.findAllByPetugasKelompok_NikOrderByNamaKelompok(nik);
+    List<Object> response = new ArrayList<>();
+    kelompok.forEach(kel -> response.add(kel.getId()));
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
 }

@@ -22,8 +22,12 @@ public class MasterKotaService {
     return kotaRepository.findAllByOrderByNamaKotaAsc();
   }
 
-  public Iterable<MasterKota> findAllByKodeKotaStartingWith(String kodeKota) {
-    return kotaRepository.findAllByKodeKotaStartingWith(kodeKota);
+  public Iterable<MasterKota> findAllByProvinsi_KodeProvinsiOrderByNamaKotaAsc(String kodeProvinsi) {
+    return kotaRepository.findAllByProvinsi_KodeProvinsiOrderByNamaKotaAsc(kodeProvinsi);
+  }
+
+  public Iterable<MasterKota> findAllByKodeKota(String kodeKota) {
+    return kotaRepository.findAllByKodeKota(kodeKota);
   }
 
   public MasterKota findByKode(String kodeKota) {
