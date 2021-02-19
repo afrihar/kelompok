@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { withKeycloak } from "@react-keycloak/web";
 import {
-  alphanumeric,
+  alphanumeric, getKodeWilayah,
   handleLogError,
   isKecamatan,
   isKelurahan,
@@ -39,7 +39,8 @@ class PetugasDomisili extends Component {
     filterValid: true,
     isLoadingPage: false,
     isLoadingSearch: false,
-    responsePetugas: []
+    responsePetugas: [],
+    petugasOptions: []
   };
 
   async componentDidMount() {
@@ -53,22 +54,22 @@ class PetugasDomisili extends Component {
         );
       } else if (isKota(keycloak)) {
         getPetugasOptions = await kelompokApi.getPetugasOptionsKecamatanDomisili(
-          keycloak.tokenParsed["kode_wilayah"],
+          getKodeWilayah(keycloak),
           keycloak.token
         );
       } else if (isKecamatan(keycloak)) {
         getPetugasOptions = await kelompokApi.getPetugasOptionsKelurahanDomisili(
-          keycloak.tokenParsed["kode_wilayah"],
+          getKodeWilayah(keycloak),
           keycloak.token
         );
       } else if (isKelurahan(keycloak)) {
         getPetugasOptions = await kelompokApi.getPetugasOptionsRwDomisili(
-          keycloak.tokenParsed["kode_wilayah"],
+          getKodeWilayah(keycloak),
           keycloak.token
         );
       } else if (isRw(keycloak)) {
         getPetugasOptions = await kelompokApi.getPetugasOptionsRtDomisili(
-          keycloak.tokenParsed["kode_wilayah"],
+          getKodeWilayah(keycloak),
           keycloak.token
         );
       }

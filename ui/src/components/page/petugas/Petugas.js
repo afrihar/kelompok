@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import {
-  alphanumeric,
+  alphanumeric, getKodeWilayah,
   handleLogError,
   isKecamatan,
   isKelurahan,
@@ -38,7 +38,8 @@ class Petugas extends Component {
     filterValid: true,
     isLoadingPage: false,
     isLoadingSearch: false,
-    responsePetugas: []
+    responsePetugas: [],
+    petugasOptions:[]
   };
 
   async componentDidMount() {
@@ -52,22 +53,22 @@ class Petugas extends Component {
         );
       } else if (isKota(keycloak)) {
         getPetugasOptions = await kelompokApi.getPetugasOptionsKecamatanTugas(
-          keycloak.tokenParsed["kode_wilayah"],
+          getKodeWilayah(keycloak),
           keycloak.token
         );
       } else if (isKecamatan(keycloak)) {
         getPetugasOptions = await kelompokApi.getPetugasOptionsKelurahanTugas(
-          keycloak.tokenParsed["kode_wilayah"],
+          getKodeWilayah(keycloak),
           keycloak.token
         );
       } else if (isKelurahan(keycloak)) {
         getPetugasOptions = await kelompokApi.getPetugasOptionsRwTugas(
-          keycloak.tokenParsed["kode_wilayah"],
+          getKodeWilayah(keycloak),
           keycloak.token
         );
       } else if (isRw(keycloak)) {
         getPetugasOptions = await kelompokApi.getPetugasOptionsRtTugas(
-          keycloak.tokenParsed["kode_wilayah"],
+          getKodeWilayah(keycloak),
           keycloak.token
         );
       }

@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { withKeycloak } from "@react-keycloak/web";
 import { kelompokApi } from "../../util/KelompokApi";
 import {
+  getKodeWilayah,
   handleLogError,
   isKecamatan,
   isKelurahan,
@@ -95,12 +96,12 @@ class PetugasDetailDomisili extends Component {
       this.setState({ namaAsli: petugas.nama });
       // if (petugas.rtDomisili) {
       // }
-      if ((isRt(keycloak) && (petugas.rtDomisili.kodeRt === keycloak.tokenParsed["kode_wilayah"].toString()))
-        || (isRw(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 12) === keycloak.tokenParsed["kode_wilayah"].toString()))
-        || (isKelurahan(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 9) === keycloak.tokenParsed["kode_wilayah"].toString()))
-        || (isKecamatan(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 6) === keycloak.tokenParsed["kode_wilayah"].toString()))
-        || (isKota(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 4) === keycloak.tokenParsed["kode_wilayah"].toString()))
-        || (isProvinsi(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 2) === keycloak.tokenParsed["kode_wilayah"].toString()))
+      if ((isRt(keycloak) && (petugas.rtDomisili.kodeRt === getKodeWilayah(keycloak)))
+        || (isRw(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 12) === getKodeWilayah(keycloak)))
+        || (isKelurahan(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 9) === getKodeWilayah(keycloak)))
+        || (isKecamatan(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 6) === getKodeWilayah(keycloak)))
+        || (isKota(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 4) === getKodeWilayah(keycloak)))
+        || (isProvinsi(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 2) === getKodeWilayah(keycloak)))
         || (isPusdatin(keycloak))
       ) {
         this.setState({ message: { isMatchWilayah: true } });

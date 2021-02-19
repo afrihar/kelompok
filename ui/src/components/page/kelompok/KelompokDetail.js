@@ -2,6 +2,9 @@ import React, { Component } from "react";
 import { withKeycloak } from "@react-keycloak/web";
 import { kelompokApi } from "../../util/KelompokApi";
 import {
+  getKodeKecamatan,
+  getKodeKota,
+  getKodeWilayah,
   handleLogError,
   isKecamatan,
   isKelurahan,
@@ -69,18 +72,34 @@ class KelompokDetail extends Component {
     this.setState({ provinsiOptions, kotaOptions: getKotaOptions.data });
     let form = { ...this.formInitialState };
     if (id === "tambah") {
-      this.setState({ form: { ...this.formInitialState }, message: { isMatchWilayah: true } });
+      if (isKelurahan(keycloak)) {
+        form.kota.kodeKota = getKodeKota(keycloak);
+        const getKecamatanOptions = await kelompokApi.getKelompokOptionsKecamatan(getKodeKota(keycloak), keycloak.token);
+        form.kecamatan.kodeKecamatan = getKodeKecamatan(keycloak);
+        const getKelurahanOptions = await kelompokApi.getKelompokOptionsKelurahan(form.kecamatan.kodeKecamatan, keycloak.token);
+        form.kelurahan.kodeKelurahan = getKodeWilayah(keycloak);
+        const getKelurahan = await kelompokApi.getKelompokDetailKelurahan(form.kelurahan.kodeKelurahan, keycloak.token);
+        const kelurahanDetail = getKelurahan.data;
+        const getRwOptions = await kelompokApi.getKelompokOptionsRw(form.kelurahan.kodeKelurahan, keycloak.token);
+        this.setState({
+          kecamatanOptions: getKecamatanOptions.data,
+          kelurahanOptions: getKelurahanOptions.data,
+          rwOptions: getRwOptions.data,
+          namaKelompokKelurahan: kelurahanDetail.namaKelompokKelurahan
+        });
+      }
+      this.setState({ form, message: { isMatchWilayah: true } });
     } else {
       try {
         const response = await kelompokApi.getKelompokById(id, keycloak.token);
         const kelompok = response.data;
         if (kelompok.rtKelompok) {
-          if ((isRt(keycloak) && (kelompok.rtKelompok.kodeRt === keycloak.tokenParsed["kode_wilayah"].toString()))
-            || (isRw(keycloak) && (kelompok.rtKelompok.kodeRt.substr(0, 12) === keycloak.tokenParsed["kode_wilayah"].toString()))
-            || (isKelurahan(keycloak) && (kelompok.rtKelompok.kodeRt.substr(0, 9) === keycloak.tokenParsed["kode_wilayah"].toString()))
-            || (isKecamatan(keycloak) && (kelompok.rtKelompok.kodeRt.substr(0, 6) === keycloak.tokenParsed["kode_wilayah"].toString()))
-            || (isKota(keycloak) && (kelompok.rtKelompok.kodeRt.substr(0, 4) === keycloak.tokenParsed["kode_wilayah"].toString()))
-            || (isProvinsi(keycloak) && (kelompok.rtKelompok.kodeRt.substr(0, 2) === keycloak.tokenParsed["kode_wilayah"].toString()))
+          if ((isRt(keycloak) && (kelompok.rtKelompok.kodeRt === getKodeWilayah(keycloak)))
+            || (isRw(keycloak) && (kelompok.rtKelompok.kodeRt.substr(0, 12) === getKodeWilayah(keycloak)))
+            || (isKelurahan(keycloak) && (kelompok.rtKelompok.kodeRt.substr(0, 9) === getKodeWilayah(keycloak)))
+            || (isKecamatan(keycloak) && (kelompok.rtKelompok.kodeRt.substr(0, 6) === getKodeWilayah(keycloak)))
+            || (isKota(keycloak) && (kelompok.rtKelompok.kodeRt.substr(0, 4) === getKodeWilayah(keycloak)))
+            || (isProvinsi(keycloak) && (kelompok.rtKelompok.kodeRt.substr(0, 2) === getKodeWilayah(keycloak)))
             || (isPusdatin(keycloak))
           ) {
             this.setState({ message: { isMatchWilayah: true } });
@@ -296,46 +315,6 @@ class KelompokDetail extends Component {
     this.setState({ error });
     return (!rtError);
   };
-  handleDeleteKelompok = (kelompok) => {
-    this.setState({ isLoadingForm: true });
-    const modal = {
-      isOpen: true,
-      header: "Hapus Kelompok",
-      content: `Apakah anda yakin akan menghapus Kelompok : '${kelompok.namaKelompok}'?`,
-      onAction: this.handleActionModal,
-      onClose: this.handleCloseModal
-    };
-    this.setState({ modal, deleteKelompok: kelompok });
-  };
-  handleActionModal = async (response) => {
-    if (response) {
-      const { keycloak } = this.props;
-      const { deleteKelompok } = this.state;
-      try {
-        await kelompokApi.deleteKelompok(deleteKelompok.id, keycloak.token);
-        toast.info(
-          <div>
-            <p>Kelompok {deleteKelompok.namaKelompok} telah dihapus, Mohon Tunggu...</p>
-          </div>,
-          { onClose: () => this.props.history.push("/kelompok") }
-        );
-      } catch (error) {
-        toast.error(error.request.response, {
-          onClose: () => this.setState({ isLoadingForm: false })
-        });
-        handleLogError(error);
-      }
-    } else {
-      this.setState({ isLoadingForm: false });
-    }
-    this.setState({ modal: { ...this.modalInitialState } });
-  };
-  handleCloseModal = () => {
-    this.setState({
-      modal: { ...this.modalInitialState },
-      isLoadingForm: false
-    });
-  };
   handleClickBack = () => this.props.history.push("/kelompok");
   handleKeyPressBack = (e) => {
     if (e.charCode === 32 || e.charCode === 13) {
@@ -367,13 +346,7 @@ class KelompokDetail extends Component {
       petugasOptions,
       disabledWilayah
     } = this.state;
-    if (isPusdatin(keycloak)
-      || isProvinsi(keycloak)
-      || isKota(keycloak)
-      || isKecamatan(keycloak)
-      || isKelurahan(keycloak)
-      || isRw(keycloak)
-      || isRt(keycloak)) {
+    if (isPusdatin(keycloak) || isKelurahan(keycloak)) {
       return (
         <Container className="isi" text>
           {this.props.match.params.id === "tambah" ? (
@@ -408,7 +381,7 @@ class KelompokDetail extends Component {
                   <Form.Field>
                     <label>Nama Kelompok</label>
                     <Form.Input fluid id="nama" value={form.namaKelompok}
-                                placeholder="Nama Kelompok" readOnly />
+                                placeholder="Generated by System" readOnly />
                   </Form.Field>
                 </Form.Group>
               </Segment>
@@ -465,14 +438,6 @@ class KelompokDetail extends Component {
                 </Form.Field>
               </Segment>
             </Segment>
-            {/*{this.props.match.params.id !== "tambah" ? (*/}
-            {/*  <Button negative disabled={!message.isMatchWilayah} floated="left"*/}
-            {/*          onClick={() => this.handleDeleteKelompok(form)}>*/}
-            {/*    Hapus*/}
-            {/*  </Button>*/}
-            {/*) : (*/}
-            {/*  <></>*/}
-            {/*)}*/}
             <Button positive disabled={!message.isMatchWilayah} floated="right" type="submit"
                     onClick={this.handleSaveKelompok}>
               Simpan

@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { withKeycloak } from "@react-keycloak/web";
 import { kelompokApi } from "../../util/KelompokApi";
 import {
-  alphanumeric,
+  alphanumeric, getKodeWilayah,
   handleLogError,
   isKecamatan,
   isKelurahan,
@@ -39,7 +39,8 @@ class Kelompok extends Component {
     filterValid: true,
     isLoadingPage: false,
     isLoadingSearch: false,
-    responseKelompok: []
+    responseKelompok: [],
+    kelompokOptions: []
   };
 
   async componentDidMount() {
@@ -53,22 +54,22 @@ class Kelompok extends Component {
         );
       } else if (isKota(keycloak)) {
         getKelompokOptions = await kelompokApi.getKelompokOptionsKecamatan(
-          keycloak.tokenParsed["kode_wilayah"],
+          getKodeWilayah(keycloak),
           keycloak.token
         );
       } else if (isKecamatan(keycloak)) {
         getKelompokOptions = await kelompokApi.getKelompokOptionsKelurahan(
-          keycloak.tokenParsed["kode_wilayah"],
+          getKodeWilayah(keycloak),
           keycloak.token
         );
       } else if (isKelurahan(keycloak)) {
         getKelompokOptions = await kelompokApi.getKelompokOptionsRw(
-          keycloak.tokenParsed["kode_wilayah"],
+          getKodeWilayah(keycloak),
           keycloak.token
         );
       } else if (isRw(keycloak)) {
         getKelompokOptions = await kelompokApi.getKelompokOptionsRt(
-          keycloak.tokenParsed["kode_wilayah"],
+          getKodeWilayah(keycloak),
           keycloak.token
         );
       }
@@ -379,15 +380,11 @@ class Kelompok extends Component {
               <Table.Footer fullWidth>
                 <Table.Row>
                   <Table.HeaderCell colSpan="2">
-                    <Button
+                    {(isKelurahan(keycloak) || isPusdatin(keycloak)) ? <Button
                       onClick={() => this.props.history.push("/kelompok/tambah")}
-                      icon
-                      labelPosition="left"
-                      primary
-                      size="small"
-                    >
+                      icon labelPosition="left" primary size="small">
                       <Icon name="add" /> Kelompok
-                    </Button>
+                    </Button> : <></>}
                   </Table.HeaderCell>
                   <Table.HeaderCell colSpan="5">
                     {responseKelompok.totalItems > 0 &&

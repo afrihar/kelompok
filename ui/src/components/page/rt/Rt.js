@@ -38,7 +38,8 @@ class Rt extends Component {
     filterValid: true,
     isLoadingPage: false,
     isLoadingSearch: false,
-    responseRt: []
+    responseRt: [],
+    rwOptions: []
   };
 
   async componentDidMount() {
@@ -365,7 +366,7 @@ class Rt extends Component {
                       icon
                       labelPosition="left"
                       primary
-                      size="small"                    >
+                      size="small">
                       <Icon name="add" /> Rt
                     </Button>
                   </Table.HeaderCell>

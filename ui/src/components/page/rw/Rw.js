@@ -12,7 +12,7 @@ import {
   Loader,
   Pagination,
   Popup,
-  Table,
+  Table
 } from "semantic-ui-react";
 import {
   alphanumeric,
@@ -22,7 +22,7 @@ import {
   isKota,
   isProvinsi,
   isPusdatin,
-  itemPerPage,
+  itemPerPage
 } from "../../util/Helpers";
 import { withKeycloak } from "@react-keycloak/web";
 import { Redirect } from "react-router-dom";
@@ -38,6 +38,7 @@ class Rw extends Component {
     isLoadingPage: false,
     isLoadingSearch: false,
     responseRw: [],
+    kelurahanOptions: []
   };
 
   async componentDidMount() {
@@ -208,7 +209,7 @@ class Rw extends Component {
         isLoadingSearch,
         responseRw,
         kelurahanOptions,
-        filter,
+        filter
       } = this.state;
       let popupMessage = "";
       if (!filterValid) {
@@ -314,7 +315,7 @@ class Rw extends Component {
                       {rw.kelurahan ? (
                         <Table.Cell>{rw.kelurahan.namaKelurahan}</Table.Cell>
                       ) : (
-                        <Table.Cell textAlign='center' error>
+                        <Table.Cell textAlign="center" error>
                           {" "}
                           <Icon name="attention" /> Tidak Punya Kelurahan
                         </Table.Cell>
@@ -347,19 +348,19 @@ class Rw extends Component {
                         totalPages={responseRw.totalPages}
                         firstItem={{
                           content: <Icon name="angle double left" />,
-                          icon: true,
+                          icon: true
                         }}
                         lastItem={{
                           content: <Icon name="angle double right" />,
-                          icon: true,
+                          icon: true
                         }}
                         prevItem={{
                           content: <Icon name="angle left" />,
-                          icon: true,
+                          icon: true
                         }}
                         nextItem={{
                           content: <Icon name="angle right" />,
-                          icon: true,
+                          icon: true
                         }}
                         pointing
                         secondary

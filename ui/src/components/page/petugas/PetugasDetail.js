@@ -3,6 +3,7 @@ import { withKeycloak } from "@react-keycloak/web";
 import { kelompokApi } from "../../util/KelompokApi";
 import { toast, ToastContainer } from "react-toastify";
 import {
+  getKodeWilayah,
   handleLogError,
   isKecamatan,
   isKelurahan,
@@ -65,13 +66,12 @@ class PetugasDetail extends Component {
     message: { ...this.messageInitialState },
     genderOptions: [],
     agamaOptions: [],
-    provinsiDomisiliOptions: [],
+    provinsiOptions: [],
     kotaDomisiliOptions: [],
     kecamatanDomisiliOptions: [],
     kelurahanDomisiliOptions: [],
     rwDomisiliOptions: [],
     rtDomisiliOptions: [],
-    provinsiTugasOptions: [],
     kotaTugasOptions: [],
     kecamatanTugasOptions: [],
     kelurahanTugasOptions: [],
@@ -93,12 +93,12 @@ class PetugasDetail extends Component {
       const petugas = response.data;
       this.setState({ namaAsli: petugas.nama });
       if (petugas.rtTugas) {
-        if ((isRt(keycloak) && (petugas.rtTugas.kodeRt === keycloak.tokenParsed["kode_wilayah"].toString()))
-          || (isRw(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 12) === keycloak.tokenParsed["kode_wilayah"].toString()))
-          || (isKelurahan(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 9) === keycloak.tokenParsed["kode_wilayah"].toString()))
-          || (isKecamatan(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 6) === keycloak.tokenParsed["kode_wilayah"].toString()))
-          || (isKota(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 4) === keycloak.tokenParsed["kode_wilayah"].toString()))
-          || (isProvinsi(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 2) === keycloak.tokenParsed["kode_wilayah"].toString()))
+        if ((isRt(keycloak) && (petugas.rtTugas.kodeRt === getKodeWilayah(keycloak)))
+          || (isRw(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 12) === getKodeWilayah(keycloak)))
+          || (isKelurahan(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 9) === getKodeWilayah(keycloak)))
+          || (isKecamatan(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 6) === getKodeWilayah(keycloak)))
+          || (isKota(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 4) === getKodeWilayah(keycloak)))
+          || (isProvinsi(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 2) === getKodeWilayah(keycloak)))
           || (isPusdatin(keycloak))
         ) {
           this.setState({ message: { isMatchWilayah: true } });

@@ -65,7 +65,7 @@ class RtDetail extends Component {
           namaKetuaRt: rt.namaKetuaRt,
           noHpRt: rt.noHpRt,
           noTelpRt: rt.noTelpRt,
-          noTelpRtAlt: rt.noTelpRtAlt,
+          noTelpRtAlt: (rt.noTelpRtAlt ? null : ""),
           targetBangunan: rt.targetBangunan,
           targetRumahTangga: rt.targetRumahTangga,
           targetKeluarga: rt.targetKeluarga,
