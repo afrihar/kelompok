@@ -1,11 +1,10 @@
 package id.dasawisma.kelompok.controller;
 
 import id.dasawisma.kelompok.exception.ApiRequestException;
+import id.dasawisma.kelompok.model.KelompokDasawisma;
 import id.dasawisma.kelompok.model.MasterRt;
 import id.dasawisma.kelompok.model.MasterRw;
-import id.dasawisma.kelompok.service.MasterRtService;
-import id.dasawisma.kelompok.service.MasterRwService;
-import id.dasawisma.kelompok.service.ValidationErrorService;
+import id.dasawisma.kelompok.service.*;
 import id.dasawisma.kelompok.specification.MasterRtSpecification;
 import id.dasawisma.kelompok.util.PageableUtil;
 import id.dasawisma.kelompok.util.PrincipalUtil;
@@ -34,6 +33,8 @@ import static id.dasawisma.kelompok.config.SwaggerConfig.BEARER_KEY_SECURITY_SCH
 public class MasterRtController {
   private final MasterRtService rtService;
   private final MasterRwService rwService;
+  private final MasterKelurahanService kelurahanService;
+  private final KelompokDasawismaService kelompokDasawismaService;
   private final ValidationErrorService validationErrorService;
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
@@ -80,8 +81,35 @@ public class MasterRtController {
     if (errorMap != null) return errorMap;
     MasterRw rw = rwService.findByKode(rt.getRw().getKodeRw());
     rt.setRw(rw);
+    int targetBangunan = rt.getTargetBangunan();
+    generateKelompok(rt.getKodeRt(), targetBangunan);
     MasterRt masterRtSave = rtService.saveOrUpdate(rt);
     return new ResponseEntity<>(masterRtSave, HttpStatus.CREATED);
+  }
+
+  private void generateKelompok(String kodeRt, int targetBangunan) {
+    int jmlKelompokExist = 0;
+    if (kelompokDasawismaService.countAllByRtKelompok(kodeRt) != null) {
+      jmlKelompokExist = kelompokDasawismaService.countAllByRtKelompok(kodeRt);
+    }
+    if (targetBangunan > 0) {
+      int bagiKelompok = (targetBangunan / 20);
+      int modKelompok = (targetBangunan % 20);
+      int jumlahKelompok;
+      if (modKelompok == 0) jumlahKelompok = bagiKelompok;
+      else jumlahKelompok = bagiKelompok + 1;
+      if (jumlahKelompok > jmlKelompokExist) {
+        for (int i = 0; i < (jumlahKelompok - jmlKelompokExist); i++) {
+          KelompokDasawisma kelompokDasawisma = new KelompokDasawisma();
+          MasterRt rt = rtService.findByKode(kodeRt);
+          kelompokDasawisma.setRtKelompok(rt);
+          String templateNamaKelompok = kelurahanService.findByKode(kodeRt.substring(0, 9)).getNamaKelompokKelurahan();
+          String namaKelompok = templateNamaKelompok + "." + rt.getRw().getLabelRw() + "." + rt.getLabelRt() + "." + kelompokDasawismaService.getKelompokNextNumber(kodeRt);
+          kelompokDasawisma.setNamaKelompok(namaKelompok);
+          kelompokDasawismaService.saveOrUpdate(kelompokDasawisma);
+        }
+      }
+    }
   }
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})

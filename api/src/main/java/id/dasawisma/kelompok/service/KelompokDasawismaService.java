@@ -45,4 +45,19 @@ public class KelompokDasawismaService {
   public Integer countAllByRtKelompok(String kodeRt) {
     return kelompokDasawismaRepository.countAllByRtKelompok_KodeRt(kodeRt);
   }
+
+  public String getKelompokNextNumber(String kodeRt) {
+    KelompokDasawisma kelompokDasawisma = kelompokDasawismaRepository.findFirstByRtKelompok_KodeRtOrderByIdDesc(kodeRt);
+    String nextNumberString = "001";
+    if (kelompokDasawisma != null) {
+      String[] splNamaKelompok = kelompokDasawisma.getNamaKelompok().split("\\.");
+      int lastNumber = Integer.parseInt(splNamaKelompok[3]) + 1;
+      if (lastNumber >= 1 && lastNumber <= 9)
+        nextNumberString = "00" + lastNumber;
+      else if (lastNumber >= 10 && lastNumber <= 99)
+        nextNumberString = "0" + lastNumber;
+      else nextNumberString = Integer.toString(lastNumber);
+    }
+    return nextNumberString;
+  }
 }

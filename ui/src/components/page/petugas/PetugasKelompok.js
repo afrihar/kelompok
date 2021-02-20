@@ -36,7 +36,6 @@ class PetugasKelompok extends Component {
     isLoadingPage: false,
     isMatchWilayah: false,
     isPetugasHaveRtTugas: false,
-    isPetugasHaveKelompok: false,
     isRtHaveKelompok: false,
     kelompokOptions: [],
     rtKelompok: "",
@@ -152,8 +151,7 @@ class PetugasKelompok extends Component {
               <Message.Header>
                 RT Tugas pada petugas ini belum mempunyai Kelompok Dasawisma.
               </Message.Header>
-              <Message.Content>klik <a href={"/kelompok/tambah"}>disini</a> untuk
-                menugaskan..</Message.Content>
+              <Message.Content>klik <a href={"/kelompok/tambah"}>disini</a> untuk membuat kelompok..</Message.Content>
             </Message>
             <Message negative hidden={!isPetugasHaveRtTugas || isMatchWilayah}>
               <Message.Header>

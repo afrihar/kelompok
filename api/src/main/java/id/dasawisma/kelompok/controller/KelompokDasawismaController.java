@@ -257,14 +257,15 @@ public class KelompokDasawismaController {
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
   @GetMapping("/next-number/{kodeRt}")
   public ResponseEntity<?> getKelompokNextNumber(@PathVariable String kodeRt) {
-    String nextNumberString;
-    int lastNumber = kelompokDasawismaService.countAllByRtKelompok(kodeRt) + 1;
-    if (lastNumber >= 1 && lastNumber <= 9)
-      nextNumberString = "00" + lastNumber;
-    else if (lastNumber >= 10 && lastNumber <= 99)
-      nextNumberString = "0" + lastNumber;
-    else nextNumberString = Integer.toString(lastNumber);
+    String nextNumberString = kelompokDasawismaService.getKelompokNextNumber(kodeRt);
     return new ResponseEntity<>(nextNumberString, HttpStatus.OK);
+  }
+
+  @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+  @GetMapping("/sum/{kodeRt}")
+  public ResponseEntity<?> getSumKelompokByRt(@PathVariable String kodeRt) {
+    int jumlahKelompok = kelompokDasawismaService.countAllByRtKelompok(kodeRt);
+    return new ResponseEntity<>(jumlahKelompok, HttpStatus.OK);
   }
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})

@@ -4,7 +4,7 @@ import { handleLogError, isKecamatan, isKelurahan, isKota, isProvinsi, isPusdati
 import { Redirect } from "react-router-dom";
 import { kelompokApi } from "../../util/KelompokApi";
 import { toast, ToastContainer } from "react-toastify";
-import { Button, Container, Divider, Form, Header, Icon, Segment } from "semantic-ui-react";
+import { Button, Container, Divider, Form, Header, Icon, Popup, Segment } from "semantic-ui-react";
 import ConfirmationModal from "../../util/ConfirmationModal";
 
 class RtDetail extends Component {
@@ -16,6 +16,7 @@ class RtDetail extends Component {
     noHpRt: "",
     noTelpRt: "",
     noTelpRtAlt: "",
+    jumlahKelompok: "",
     targetBangunan: "",
     targetRumahTangga: "",
     targetKeluarga: "",
@@ -57,6 +58,7 @@ class RtDetail extends Component {
       try {
         const response = await kelompokApi.getRtByKode(param, keycloak.token);
         const rt = response.data;
+        const responseJmlKelompok = await kelompokApi.getJumlahKelompokByRt(rt.kodeRt, keycloak.token);
         const kodeRw = rt.rw ? rt.rw.kodeRw : "";
         const form = {
           rw: { kodeRw: kodeRw },
@@ -66,6 +68,7 @@ class RtDetail extends Component {
           noHpRt: rt.noHpRt,
           noTelpRt: rt.noTelpRt,
           noTelpRtAlt: (rt.noTelpRtAlt ? null : ""),
+          jumlahKelompok : responseJmlKelompok.data,
           targetBangunan: rt.targetBangunan,
           targetRumahTangga: rt.targetRumahTangga,
           targetKeluarga: rt.targetKeluarga,
@@ -353,9 +356,15 @@ class RtDetail extends Component {
               </Segment>
               <Divider />
               <Segment stacked>
+                <Header as="h3" textAlign="center">Jumlah Kelompok : {form.jumlahKelompok}</Header>
                 <Form.Group widths="equal">
                   <Form.Field>
-                    <label>Target Bangunan</label>
+                    <label>Jumlah Bangunan di RT {form.labelRt} {" "}
+                      <Popup
+                        trigger={<Icon name="info circle" color='red' />}
+                        content="Jumlah Target Bangunan akan dijadikan dasar untuk pembentukan Kelompok secara otomatis per RT, harap input dengan benar."
+                        position="top center"
+                      /></label>
                     <Form.Input
                       icon="home" iconPosition="left"
                       fluid
@@ -366,34 +375,36 @@ class RtDetail extends Component {
                       value={form.targetBangunan} />
                   </Form.Field>
                   <Form.Field>
-                    <label>Target Rumah Tangga</label>
+                    <label>Jumlah Rumah Tangga di RT {form.labelRt}</label>
                     <Form.Input
                       icon="industry" iconPosition="left"
                       fluid
                       placeholder="Target Rumah Tangga per RT"
-                      maxLength="4"
+                      maxLength="5"
                       id="targetRumahTangga"
                       onChange={this.handleChangeNumber}
                       value={form.targetRumahTangga} />
                   </Form.Field>
+                </Form.Group>
+                <Form.Group widths="equal">
                   <Form.Field>
-                    <label>Target Keluarga</label>
+                    <label>Jumlah Keluarga di RT {form.labelRt}</label>
                     <Form.Input
                       icon="users" iconPosition="left"
                       fluid
                       placeholder="Target Keluarga per RT"
-                      maxLength="4"
+                      maxLength="6"
                       id="targetKeluarga"
                       onChange={this.handleChangeNumber}
                       value={form.targetKeluarga} />
                   </Form.Field>
                   <Form.Field>
-                    <label>Target Individu</label>
+                    <label>Jumlah Individu di RT {form.labelRt}</label>
                     <Form.Input
                       icon="child" iconPosition="left"
                       fluid
                       placeholder="Target Individu per RT"
-                      maxLength="4"
+                      maxLength="7"
                       id="targetIndividu"
                       onChange={this.handleChangeNumber}
                       value={form.targetIndividu} />
