@@ -17,4 +17,6 @@ public interface KelompokDasawismaRepository extends JpaRepository<KelompokDasaw
   Iterable<KelompokDasawisma> findAllByRtKelompok_KodeRtOrderByNamaKelompok(@NotBlank(message = "Kode RT harus diisi.") String rtKelompok_kodeRt);
 
   Integer countAllByRtKelompok_KodeRt(@NotBlank(message = "Kode RT harus diisi.") String rtKelompok_kodeRt);
+
+  KelompokDasawisma findFirstByRtKelompok_KodeRtOrderByIdDesc(@NotBlank(message = "Kode RT harus diisi.") String rtKelompok_kodeRt);
 }

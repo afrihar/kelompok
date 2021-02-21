@@ -307,22 +307,13 @@ class ProvinsiDetail extends Component {
               </Form.Field>
             </Segment>
             {this.props.match.params.kodeProvinsi !== "tambah" ? (
-              <Button
-                negative
-                floated="left"
-                onClick={() => this.handleDeleteProvinsi(form)}
-              >
+              <Button negative floated="left" onClick={() => this.handleDeleteProvinsi(form)}>
                 Hapus
               </Button>
             ) : (
               <></>
             )}
-            <Button
-              positive
-              floated="right"
-              type="submit"
-              onClick={this.handleSaveProvinsi}
-            >
+            <Button positive floated="right" type="submit" onClick={this.handleSaveProvinsi}>
               Simpan
             </Button>
           </Form>

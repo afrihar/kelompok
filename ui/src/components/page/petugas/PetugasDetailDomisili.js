@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { withKeycloak } from "@react-keycloak/web";
 import { kelompokApi } from "../../util/KelompokApi";
 import {
+  getKodeWilayah,
   handleLogError,
   isKecamatan,
   isKelurahan,
@@ -13,7 +14,7 @@ import {
 } from "../../util/Helpers";
 import { toast, ToastContainer } from "react-toastify";
 import { Redirect } from "react-router-dom";
-import { Button, Container, Divider, Form, Header, Icon, Message, Segment } from "semantic-ui-react";
+import { Button, Container, Divider, Form, Header, Icon, Message, Popup, Segment } from "semantic-ui-react";
 import ConfirmationModal from "../../util/ConfirmationModal";
 import { DateInput } from "semantic-ui-calendar-react";
 
@@ -59,6 +60,7 @@ class PetugasDetailDomisili extends Component {
   state = {
     namaAsli: "",
     isLoadingForm: false,
+    isPetugasHaveKelompok: false,
     modal: { ...this.modalInitialState },
     form: { ...this.formInitialState },
     error: { ...this.errorInitialState },
@@ -93,14 +95,12 @@ class PetugasDetailDomisili extends Component {
       const response = await kelompokApi.getPetugasByNik(this.props.match.params.nik, keycloak.token);
       const petugas = response.data;
       this.setState({ namaAsli: petugas.nama });
-      // if (petugas.rtDomisili) {
-      // }
-      if ((isRt(keycloak) && (petugas.rtDomisili.kodeRt === keycloak.tokenParsed["kode_wilayah"].toString()))
-        || (isRw(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 12) === keycloak.tokenParsed["kode_wilayah"].toString()))
-        || (isKelurahan(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 9) === keycloak.tokenParsed["kode_wilayah"].toString()))
-        || (isKecamatan(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 6) === keycloak.tokenParsed["kode_wilayah"].toString()))
-        || (isKota(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 4) === keycloak.tokenParsed["kode_wilayah"].toString()))
-        || (isProvinsi(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 2) === keycloak.tokenParsed["kode_wilayah"].toString()))
+      if ((isRt(keycloak) && (petugas.rtDomisili.kodeRt === getKodeWilayah(keycloak)))
+        || (isRw(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 12) === getKodeWilayah(keycloak)))
+        || (isKelurahan(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 9) === getKodeWilayah(keycloak)))
+        || (isKecamatan(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 6) === getKodeWilayah(keycloak)))
+        || (isKota(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 4) === getKodeWilayah(keycloak)))
+        || (isProvinsi(keycloak) && (petugas.rtDomisili.kodeRt.substr(0, 2) === getKodeWilayah(keycloak)))
         || (isPusdatin(keycloak))
       ) {
         this.setState({ message: { isMatchWilayah: true } });
@@ -181,6 +181,8 @@ class PetugasDetailDomisili extends Component {
           form.rwTugas.kodeRw = petugas.rtTugas.rw.kodeRw;
           const getRtTugasOptions = await kelompokApi.getPetugasOptionsRtTugas(form.rwTugas.kodeRw, keycloak.token);
           form.rtTugas.kodeRt = petugas.rtTugas.kodeRt;
+          const getKelompokPetugas = await kelompokApi.getKelompokByPetugas(petugas.nik, keycloak.token);
+          if (getKelompokPetugas.data.length > 0) this.setState({ isPetugasHaveKelompok: true });
           this.setState({
             kecamatanTugasOptions: getKecamatanTugasOptions.data,
             kelurahanTugasOptions: getKelurahanTugasOptions.data,
@@ -912,6 +914,7 @@ class PetugasDetailDomisili extends Component {
       error,
       message,
       isLoadingForm,
+      isPetugasHaveKelompok,
       isLoadingKecamatanDomisili,
       isLoadingKelurahanDomisili,
       isLoadingRwDomisili,
@@ -965,9 +968,7 @@ class PetugasDetailDomisili extends Component {
             <Button animated basic color="grey" floated="right" onClick={this.handleClickKelompok}
                     onKeyPress={this.handleKeyPressKelompok}>
               <Button.Content hidden>Kelompok</Button.Content>
-              <Button.Content visible>
-                <Icon name="map" />
-              </Button.Content>
+              <Button.Content visible> <Icon name="map" /> </Button.Content>
             </Button> : <></>}
           <Divider />
           <Form loading={isLoadingForm}>
@@ -1035,6 +1036,13 @@ class PetugasDetailDomisili extends Component {
                 </Form.Group>
               </Segment>
               <Segment raised>
+                <Header as="h5" textAlign="center"> Wilayah Tugas {" "}
+                  {isPetugasHaveKelompok ? <Popup
+                    trigger={<Icon name="info circle" color="red" />}
+                    content="Wilayah Tugas tidak dapat diubah apabila petugas yang bersangkutan sedang ditugaskan ke kelompok."
+                    position="top center"
+                  /> : <></>}
+                </Header>
                 <Form.Group widths="equal">
                   <Form.Field disabled>
                     <label>Provinsi Tugas</label>
@@ -1063,13 +1071,13 @@ class PetugasDetailDomisili extends Component {
                   </Form.Field>
                 </Form.Group>
                 <Form.Group widths="equal">
-                  <Form.Field>
+                  <Form.Field disabled={isPetugasHaveKelompok}>
                     <label>RW Tugas</label>
                     <Form.Dropdown clearable selection placeholder="RW Tugas" options={rwTugasOptions}
                                    onChange={this.handleChangeDropdownRwTugas} value={form.rwTugas.kodeRw}
                                    loading={isLoadingRwTugas} />
                   </Form.Field>
-                  <Form.Field>
+                  <Form.Field disabled={isPetugasHaveKelompok}>
                     <label>RT Tugas</label>
                     <Form.Dropdown clearable selection placeholder="RT Tugas" options={rtTugasOptions}
                                    loading={isLoadingRtTugas} onChange={this.handleChangeDropdownRtTugas}

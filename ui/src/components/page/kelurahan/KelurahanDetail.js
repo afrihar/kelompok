@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { withKeycloak } from "@react-keycloak/web";
-import { Button, Container, Divider, Form, Header, Icon, Segment } from "semantic-ui-react";
+import { Button, Container, Divider, Form, Header, Icon, Popup, Segment } from "semantic-ui-react";
 import { kelompokApi } from "../../util/KelompokApi";
 import { handleLogError, isKecamatan, isKota, isProvinsi, isPusdatin } from "../../util/Helpers";
 import { Redirect } from "react-router-dom";
@@ -229,11 +229,14 @@ class KelurahanDetail extends Component {
       isLoadingForm: false
     });
   };
-  handleChange = (e) => {
-    const { id, value } = e.target;
-    const form = { ...this.state.form };
-    form[id] = value;
-    this.setState({ form });
+  handleChangeNamaKelompok = (e) => {
+    const re = /^(?:[A-Z][^\s]*\s?)+$/;
+    if (e.target.value === "" || re.test(e.target.value)) {
+      const { id, value } = e.target;
+      const form = { ...this.state.form };
+      form[id] = value;
+      this.setState({ form });
+    }
   };
   handleChangeToUpperCase = (e) => {
     const re = /^[a-zA-Z ]+$/;
@@ -417,12 +420,17 @@ class KelurahanDetail extends Component {
                 />
               </Form.Field>
               <Form.Field>
-                <label>Nama Kelompok Dasawisma</label>
+                <label>Basis Nama Kelompok Dasawisma Kelurahan{" "}
+                  <Popup
+                    trigger={<Icon name="info circle" color='red' />}
+                    content="Nama Kelompok diawali dengan huruf kapital dibatasi 1 spasi dan huruf kapital setelah spasi. (tidak diperkenankan input selain huruf dan spasi)"
+                    position="top center"
+                  /></label>
                 <Form.Input
                   fluid
                   placeholder="Nama Kelompok"
-                  id="namaKelompok"
-                  onChange={this.handleChange}
+                  id="namaKelompokKelurahan"
+                  onChange={this.handleChangeNamaKelompok}
                   value={form.namaKelompokKelurahan}
                 />
               </Form.Field>

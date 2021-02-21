@@ -69,6 +69,7 @@ export const kelompokApi = {
   getKelompokOptionsPetugas,
   getKelompokDetailKelurahan,
   getKelompokLastNumber,
+  getJumlahKelompokByRt,
   getOptionsAgama,
   getOptionsPendidikan,
   getOptionsPekerjaan,
@@ -734,6 +735,15 @@ function getKelompokDetailKelurahan(kodeKelurahan, token) {
 
 function getKelompokLastNumber(kodeRt, token) {
   return instance.get(`/api/kelompok/next-number/${kodeRt}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function getJumlahKelompokByRt(kodeRt, token) {
+  return instance.get(`/api/kelompok/sum/${kodeRt}`, {
     headers: {
       "Content-type": "application/json",
       Authorization: bearerAuth(token)

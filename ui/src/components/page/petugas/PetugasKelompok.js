@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Button, Container, Dropdown, Form, Header, Loader, Message, Segment } from "semantic-ui-react";
 import { withKeycloak } from "@react-keycloak/web";
 import {
+  getKodeWilayah,
   handleLogError,
   isKecamatan,
   isKelurahan,
@@ -35,7 +36,6 @@ class PetugasKelompok extends Component {
     isLoadingPage: false,
     isMatchWilayah: false,
     isPetugasHaveRtTugas: false,
-    isPetugasHaveKelompok: false,
     isRtHaveKelompok: false,
     kelompokOptions: [],
     rtKelompok: "",
@@ -66,12 +66,12 @@ class PetugasKelompok extends Component {
         petugasView.kelurahanTugas = petugas.rtTugas.rw.kelurahan.namaKelurahan;
         petugasView.kecamatanTugas = petugas.rtTugas.rw.kelurahan.kecamatan.namaKecamatan;
         petugasView.kotaTugas = petugas.rtTugas.rw.kelurahan.kecamatan.kota.namaKota;
-        if ((isRt(keycloak) && (petugas.rtTugas.kodeRt === keycloak.tokenParsed["kode_wilayah"].toString()))
-          || (isRw(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 12) === keycloak.tokenParsed["kode_wilayah"].toString()))
-          || (isKelurahan(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 9) === keycloak.tokenParsed["kode_wilayah"].toString()))
-          || (isKecamatan(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 6) === keycloak.tokenParsed["kode_wilayah"].toString()))
-          || (isKota(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 4) === keycloak.tokenParsed["kode_wilayah"].toString()))
-          || (isProvinsi(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 2) === keycloak.tokenParsed["kode_wilayah"].toString()))
+        if ((isRt(keycloak) && (petugas.rtTugas.kodeRt === getKodeWilayah(keycloak)))
+          || (isRw(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 12) === getKodeWilayah(keycloak)))
+          || (isKelurahan(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 9) === getKodeWilayah(keycloak)))
+          || (isKecamatan(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 6) === getKodeWilayah(keycloak)))
+          || (isKota(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 4) === getKodeWilayah(keycloak)))
+          || (isProvinsi(keycloak) && (petugas.rtTugas.kodeRt.substr(0, 2) === getKodeWilayah(keycloak)))
           || (isPusdatin(keycloak))
         ) {
           this.setState({ isMatchWilayah: true, rtKelompok: petugas.rtTugas.kodeRt });
@@ -151,8 +151,7 @@ class PetugasKelompok extends Component {
               <Message.Header>
                 RT Tugas pada petugas ini belum mempunyai Kelompok Dasawisma.
               </Message.Header>
-              <Message.Content>klik <a href={"/kelompok/tambah"}>disini</a> untuk
-                menugaskan..</Message.Content>
+              <Message.Content>klik <a href={"/kelompok/tambah"}>disini</a> untuk membuat kelompok..</Message.Content>
             </Message>
             <Message negative hidden={!isPetugasHaveRtTugas || isMatchWilayah}>
               <Message.Header>
