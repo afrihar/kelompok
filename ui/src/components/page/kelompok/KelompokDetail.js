@@ -431,8 +431,8 @@ class KelompokDetail extends Component {
               </Segment>
               <Segment raised>
                 <Form.Field>
-                  <label>Petugas</label>
-                  <Form.Dropdown clearable selection placeholder="Petugas" options={petugasOptions}
+                  <label>Kader</label>
+                  <Form.Dropdown clearable selection placeholder="Kader" options={petugasOptions}
                                  loading={isLoadingPetugas}
                                  onChange={this.handleChangeDropdownPetugas} value={form.petugasKelompok.nik} />
                 </Form.Field>

@@ -1,4 +1,12 @@
 //TODO Config Frontend
+// const prod = {
+//   url: {
+//     KEYCLOAK_BASE_URL: "https://carik.jakarta.go.id",
+//     API_BASE_URL: "https://carik.jakarta.go.id/kelompokapi",
+//     AVATARS_DICEBEAR_URL: "https://avatars.dicebear.com/v2",
+//     SOA_DKI: "https://soadki.jakarta.go.id/rest/gov/dki/dukcapil/ws"
+//   }
+// };
 const prod = {
   url: {
     KEYCLOAK_BASE_URL: "https://sso.dasawisma.id",
@@ -7,7 +15,6 @@ const prod = {
     SOA_DKI: "https://soadki.jakarta.go.id/rest/gov/dki/dukcapil/ws"
   }
 };
-
 const dev = {
   url: {
     KEYCLOAK_BASE_URL: "http://sso.kelompok.vm",

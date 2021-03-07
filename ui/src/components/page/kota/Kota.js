@@ -249,7 +249,7 @@ class Kota extends Component {
                 <Popup
                   trigger={
                     <Input
-                      placeholder="Cari Kota"
+                      placeholder="Cari Nama Kota"
                       name="filter"
                       error={!filterValid}
                       fluid

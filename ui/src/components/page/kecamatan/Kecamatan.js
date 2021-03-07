@@ -39,8 +39,7 @@ class Kecamatan extends Component {
       const getKotaOptions = await kelompokApi.getKecamatanOptionsKota(
         keycloak.token
       );
-      const kotaOptions = getKotaOptions.data;
-      this.setState({ kotaOptions });
+      this.setState({ kotaOptions: getKotaOptions.data });
       await this.handleGetKecamatan();
     } catch (error) {
       handleLogError(error);
@@ -144,7 +143,7 @@ class Kecamatan extends Component {
     }
     this.setState({ isLoadingPage: false });
   };
-  handleDropdownChange = async (e, { value }) => {
+  handleFilterKotaChange = async (e, { value }) => {
     this.setState({ isLoadingPage: true, filterKota: value });
     const { keycloak } = this.props;
     const { size, sortBy, direction, filter } = this.state;
@@ -231,7 +230,7 @@ class Kecamatan extends Component {
                     fluid
                     options={kotaOptions}
                     placeholder="Filter Kota"
-                    onChange={this.handleDropdownChange}
+                    onChange={this.handleFilterKotaChange}
                     search
                     selection
                     scrolling
@@ -242,18 +241,16 @@ class Kecamatan extends Component {
               </Grid.Column>
               <Grid.Column>
                 <Popup
-                  trigger={
-                    <Input
-                      placeholder="Cari Kecamatan"
-                      name="filter"
-                      error={!filterValid}
-                      fluid
-                      size="small"
-                      icon="search"
-                      loading={isLoadingSearch}
-                      onChange={(e) => this.handleSearch(e.target.value)}
-                    />
-                  }
+                  trigger={<Input
+                    placeholder="Cari Nama Kecamatan"
+                    name="filter"
+                    error={!filterValid}
+                    fluid
+                    size="small"
+                    icon="search"
+                    loading={isLoadingSearch}
+                    onChange={(e) => this.handleSearch(e.target.value)}
+                  />}
                   content={popupMessage}
                   on="click"
                   open={!filterValid || responseKecamatan.totalItems === 0}

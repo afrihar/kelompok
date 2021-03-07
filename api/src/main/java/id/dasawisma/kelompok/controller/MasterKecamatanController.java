@@ -120,5 +120,4 @@ public class MasterKecamatanController {
     }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
-
 }

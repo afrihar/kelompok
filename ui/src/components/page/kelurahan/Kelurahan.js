@@ -259,7 +259,7 @@ class Kelurahan extends Component {
                 <Popup
                   trigger={
                     <Input
-                      placeholder="Cari Kelurahan"
+                      placeholder="Cari Nama Kelurahan / Kelompok"
                       name="filter"
                       error={!filterValid}
                       fluid

@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { withKeycloak } from "@react-keycloak/web";
 import {
-  alphanumeric, getKodeWilayah,
+  alphanumeric,
   handleLogError,
   isKecamatan,
   isKelurahan,
@@ -40,43 +40,41 @@ class PetugasDomisili extends Component {
     isLoadingPage: false,
     isLoadingSearch: false,
     responsePetugas: [],
-    petugasOptions: []
+    kotaOptions: [],
+    kecamatanOptions: [],
+    kelurahanOptions: [],
+    rwOptions: [],
+    rtOptions: []
   };
 
   async componentDidMount() {
     this.setState({ isLoadingPage: true });
     try {
       const { keycloak } = this.props;
-      let getPetugasOptions;
-      if (isPusdatin(keycloak) || isProvinsi(keycloak)) {
-        getPetugasOptions = await kelompokApi.getPetugasOptionsKotaDomisili(
-          keycloak.token
-        );
-      } else if (isKota(keycloak)) {
-        getPetugasOptions = await kelompokApi.getPetugasOptionsKecamatanDomisili(
-          getKodeWilayah(keycloak),
-          keycloak.token
-        );
-      } else if (isKecamatan(keycloak)) {
-        getPetugasOptions = await kelompokApi.getPetugasOptionsKelurahanDomisili(
-          getKodeWilayah(keycloak),
-          keycloak.token
-        );
-      } else if (isKelurahan(keycloak)) {
-        getPetugasOptions = await kelompokApi.getPetugasOptionsRwDomisili(
-          getKodeWilayah(keycloak),
-          keycloak.token
-        );
-      } else if (isRw(keycloak)) {
-        getPetugasOptions = await kelompokApi.getPetugasOptionsRtDomisili(
-          getKodeWilayah(keycloak),
-          keycloak.token
-        );
+      const getKotaOptions = await kelompokApi.getPetugasOptionsKotaDomisili(keycloak.token);
+      let valueKota;
+      if (getKotaOptions.data.length === 1) {
+        valueKota = getKotaOptions.data[0].key;
+        const getKecamatanOptions = await kelompokApi.getPetugasOptionsKecamatanDomisili(valueKota, keycloak.token);
+        let valueKecamatan;
+        if (getKecamatanOptions.data.length === 1) {
+          valueKecamatan = getKecamatanOptions.data[0].key;
+          const getKelurahanOptions = await kelompokApi.getPetugasOptionsKelurahanDomisili(valueKecamatan, keycloak.token);
+          let valueKelurahan;
+          if (getKelurahanOptions.data.length === 1) {
+            valueKelurahan = getKelurahanOptions.data[0].key;
+            const getRwOptions = await kelompokApi.getPetugasOptionsRwDomisili(valueKelurahan, keycloak.token);
+            let valueRw;
+            if (getRwOptions.data.length === 1) valueRw = getRwOptions.data[0].key;
+            this.setState({ rwOptions: getRwOptions.data, valueRw });
+          }
+          this.setState({ kelurahanOptions: getKelurahanOptions.data, valueKelurahan });
+        }
+        this.setState({ kecamatanOptions: getKecamatanOptions.data, valueKecamatan });
+      } else {
+        this.setState({ clearableKota: true });
       }
-      if (getPetugasOptions !== undefined) {
-        const petugasOptions = getPetugasOptions.data;
-        this.setState({ petugasOptions });
-      }
+      this.setState({ kotaOptions: getKotaOptions.data, valueKota });
       await this.handleGetPetugas();
     } catch (error) {
       handleLogError(error);
@@ -178,12 +176,30 @@ class PetugasDomisili extends Component {
     }
     this.setState({ isLoadingPage: false });
   };
-  handleOptionsChange = async (e, { value }) => {
-    this.setState({ isLoadingPage: true, filterWilayah: value });
+  handleOptionsChangeKota = async (e, { value }) => {
+    this.setState({
+      isLoadingPage: true,
+      isLoadingOptionKecamatan: true,
+      kecamatanOptions: [],
+      kelurahanOptions: [],
+      rwOptions: [],
+      rtOptions: [],
+      valueKecamatan: "",
+      valueKelurahan: "",
+      valueRw: "",
+      valueRt: "",
+      filterWilayah: value
+    });
     const { keycloak } = this.props;
     const { size, sortBy, direction, filter } = this.state;
     if (value !== "") {
       try {
+        const getKecamatanOptions = await kelompokApi.getPetugasOptionsKecamatanDomisili(value, keycloak.token);
+        this.setState({
+          kecamatanOptions: getKecamatanOptions.data,
+          isLoadingOptionKecamatan: false,
+          clearableKecamatan: true
+        });
         const response = await kelompokApi.getPetugasDomisili(
           keycloak.token,
           1,
@@ -193,12 +209,12 @@ class PetugasDomisili extends Component {
           value,
           filter
         );
-        const responsePetugas = response.data;
-        this.setState({ responsePetugas });
+        this.setState({ responsePetugas: response.data });
       } catch (error) {
         handleLogError(error);
       }
     } else {
+      this.setState({ isLoadingOptionKecamatan: false });
       try {
         const response = await kelompokApi.getPetugasDomisili(
           keycloak.token,
@@ -206,17 +222,196 @@ class PetugasDomisili extends Component {
           size,
           sortBy,
           direction,
-          undefined,
+          31,
           filter
         );
         const responsePetugas = response.data;
-        this.setState({ responsePetugas, filterWilayah: undefined });
+        this.setState({ responsePetugas, filterWilayah: 31 });
       } catch (error) {
         handleLogError(error);
       }
     }
     this.setState({ isLoadingPage: false });
   };
+  handleOptionsChangeKecamatan = async (e, { value }) => {
+    this.setState({
+      isLoadingPage: true,
+      isLoadingOptionKelurahan: true,
+      kelurahanOptions: [],
+      rwOptions: [],
+      rtOptions: [],
+      valueKecamatan: value,
+      valueKelurahan: "",
+      valueRw: "",
+      valueRt: "",
+      filterWilayah: value
+    });
+    const { keycloak } = this.props;
+    const { size, sortBy, direction, filter } = this.state;
+    if (value !== "") {
+      try {
+        const getKelurahanOptions = await kelompokApi.getPetugasOptionsKelurahanDomisili(value, keycloak.token);
+        this.setState({
+          kelurahanOptions: getKelurahanOptions.data,
+          isLoadingOptionKelurahan: false,
+          clearableKelurahan: true
+        });
+        const response = await kelompokApi.getPetugasDomisili(
+          keycloak.token,
+          1,
+          size,
+          sortBy,
+          direction,
+          value,
+          filter
+        );
+        this.setState({ responsePetugas: response.data });
+      } catch (error) {
+        handleLogError(error);
+      }
+    } else {
+      try {
+        this.setState({ isLoadingOptionKelurahan: false });
+        const response = await kelompokApi.getPetugasDomisili(
+          keycloak.token,
+          1,
+          size,
+          sortBy,
+          direction,
+          this.state.valueKecamatan,
+          filter
+        );
+        this.setState({ responsePetugas: response.data });
+      } catch (error) {
+        handleLogError(error);
+      }
+      this.setState({ isLoadingOptionKecamatan: false });
+    }
+    this.setState({ isLoadingPage: false });
+  };
+  handleOptionsChangeKelurahan = async (e, { value }) => {
+    this.setState({
+      isLoadingPage: true,
+      isLoadingOptionRw: true,
+      rwOptions: [],
+      rtOptions: [],
+      valueKelurahan: value,
+      valueRw: "",
+      valueRt: "",
+      filterWilayah: value
+    });
+    const { keycloak } = this.props;
+    const { size, sortBy, direction, filter } = this.state;
+    if (value !== "") {
+      try {
+        const getRwOptions = await kelompokApi.getPetugasOptionsRwDomisili(value, keycloak.token);
+        this.setState({ rwOptions: getRwOptions.data, isLoadingOptionRw: false, clearableRw: true });
+        const response = await kelompokApi.getPetugasDomisili(
+          keycloak.token,
+          1,
+          size,
+          sortBy,
+          direction,
+          value,
+          filter
+        );
+        this.setState({ responsePetugas: response.data });
+      } catch (error) {
+        handleLogError(error);
+      }
+    } else {
+      try {
+        this.setState({ isLoadingOptionRw: false });
+        const response = await kelompokApi.getPetugasDomisili(
+          keycloak.token,
+          1,
+          size,
+          sortBy,
+          direction,
+          this.state.valueKecamatan,
+          filter
+        );
+        this.setState({ responsePetugas: response.data });
+      } catch (error) {
+        handleLogError(error);
+      }
+      this.setState({ isLoadingOptionKelurahan: false });
+    }
+    this.setState({ isLoadingPage: false });
+  };
+  handleOptionsChangeRw = async (e, { value }) => {
+    this.setState({
+      isLoadingPage: true,
+      rtOptions: [],
+      isLoadingOptionRt: true,
+      valueRw: value,
+      valueRt: "",
+      filterWilayah: value
+    });
+    const { keycloak } = this.props;
+    const { size, sortBy, direction, filter } = this.state;
+    if (value !== "") {
+      try {
+        const getRtOptions = await kelompokApi.getPetugasOptionsRtDomisili(value, keycloak.token);
+        this.setState({ rtOptions: getRtOptions.data, isLoadingOptionRt: false, clearableRt: true });
+        const response = await kelompokApi.getPetugasDomisili(
+          keycloak.token,
+          1,
+          size,
+          sortBy,
+          direction,
+          value,
+          filter
+        );
+        this.setState({ responsePetugas: response.data });
+      } catch (error) {
+        handleLogError(error);
+      }
+    } else {
+      try {
+        this.setState({ isLoadingOptionRt: false });
+        const response = await kelompokApi.getPetugasDomisili(
+          keycloak.token,
+          1,
+          size,
+          sortBy,
+          direction,
+          this.state.valueKelurahan,
+          filter
+        );
+        this.setState({ responsePetugas: response.data });
+      } catch (error) {
+        handleLogError(error);
+      }
+      this.setState({ isLoadingOptionRt: false });
+    }
+    this.setState({ isLoadingPage: false });
+  };
+  handleOptionsChangeRt = async (e, { value }) => {
+    this.setState({
+      isLoadingPage: true,
+      valueRt: value,
+      filterWilayah: value
+    });
+    const { keycloak } = this.props;
+    const { size, sortBy, direction, filter } = this.state;
+    try {
+      const response = await kelompokApi.getPetugasDomisili(
+        keycloak.token,
+        1,
+        size,
+        sortBy,
+        direction,
+        value ? value : this.state.valueRw,
+        filter
+      );
+      this.setState({ responsePetugas: response.data });
+    } catch (error) {
+      handleLogError(error);
+    }
+    this.setState({ isLoadingPage: false });
+  };
+
 
   render() {
     const { keycloak } = this.props;
@@ -234,10 +429,33 @@ class PetugasDomisili extends Component {
         filterValid,
         isLoadingPage,
         isLoadingSearch,
+        isLoadingOptionKecamatan,
+        isLoadingOptionKelurahan,
+        isLoadingOptionRw,
+        isLoadingOptionRt,
         responsePetugas,
-        petugasOptions,
+        kotaOptions,
+        valueKota,
+        clearableKota,
+        kecamatanOptions,
+        valueKecamatan,
+        clearableKecamatan,
+        kelurahanOptions,
+        valueKelurahan,
+        clearableKelurahan,
+        rwOptions,
+        valueRw,
+        clearableRw,
+        rtOptions,
+        valueRt,
+        clearableRt,
         filter
       } = this.state;
+      const provinsiOptions = [{
+        key: "31",
+        text: "DKI JAKARTA",
+        value: "31"
+      }];
       let popupMessage = "";
       if (!filterValid) {
         popupMessage = "Karakter Tidak valid.";
@@ -247,9 +465,90 @@ class PetugasDomisili extends Component {
       return (
         <Container className="isi">
           <Header as="h1" textAlign="center">
-            Petugas Berdasarkan Domisili
+            Kader Berdasarkan Domisili
           </Header>
           <Grid columns="equal" verticalAlign="middle">
+            <GridRow>
+              <Grid.Column>
+                <Dropdown
+                  fluid
+                  options={provinsiOptions}
+                  selection
+                  value={"31"}
+                />
+              </Grid.Column>
+              <Grid.Column>
+                <Dropdown
+                  clearable={clearableKota}
+                  fluid
+                  options={kotaOptions}
+                  placeholder="Kota Tugas"
+                  onChange={this.handleOptionsChangeKota}
+                  search
+                  selection
+                  scrolling
+                  value={valueKota}
+                />
+              </Grid.Column>
+              <Grid.Column>
+                <Dropdown
+                  clearable={clearableKecamatan}
+                  fluid
+                  options={kecamatanOptions}
+                  placeholder="Kecamatan Tugas"
+                  onChange={this.handleOptionsChangeKecamatan}
+                  search
+                  selection
+                  scrolling
+                  value={valueKecamatan}
+                  loading={isLoadingOptionKecamatan}
+                />
+              </Grid.Column>
+            </GridRow>
+            <GridRow>
+              <Grid.Column>
+                <Dropdown
+                  clearable={clearableKelurahan}
+                  fluid
+                  options={kelurahanOptions}
+                  placeholder="Kelurahan Tugas"
+                  onChange={this.handleOptionsChangeKelurahan}
+                  search
+                  selection
+                  scrolling
+                  value={valueKelurahan}
+                  loading={isLoadingOptionKelurahan}
+                />
+              </Grid.Column>
+              <Grid.Column>
+                <Dropdown
+                  clearable={clearableRw}
+                  fluid
+                  options={rwOptions}
+                  placeholder="Rw Tugas"
+                  onChange={this.handleOptionsChangeRw}
+                  search
+                  selection
+                  scrolling
+                  value={valueRw}
+                  loading={isLoadingOptionRw}
+                />
+              </Grid.Column>
+              <Grid.Column>
+                <Dropdown
+                  clearable={clearableRt}
+                  fluid
+                  options={rtOptions}
+                  placeholder="Rt Tugas"
+                  onChange={this.handleOptionsChangeRt}
+                  search
+                  selection
+                  scrolling
+                  value={valueRt}
+                  loading={isLoadingOptionRt}
+                />
+              </Grid.Column>
+            </GridRow>
             <GridRow>
               <Grid.Column>
                 <React.Fragment>
@@ -262,36 +561,19 @@ class PetugasDomisili extends Component {
                     defaultValue={String(size)}
                   />{" "}
                   Total Data : {responsePetugas.totalItems}
-                  {" Rt"}
+                  {" Kader"}
                   {filter ? " (filter)" : ""}
                 </React.Fragment>
-              </Grid.Column>
-              <Grid.Column>
-                {isPusdatin(keycloak) ||
-                isProvinsi(keycloak) ||
-                isKota(keycloak) ||
-                isKecamatan(keycloak) ||
-                isKelurahan(keycloak) ||
-                isRw(keycloak) ? (
-                  <Dropdown
-                    clearable
-                    fluid
-                    options={petugasOptions}
-                    placeholder="Filter Petugas By Domisili"
-                    onChange={this.handleOptionsChange}
-                    search
-                    selection
-                    scrolling
-                  />
-                ) : (
-                  <></>
-                )}
-              </Grid.Column>
+              </Grid.Column><Popup
+              trigger={<Icon name="info circle" color="red" />}
+              content="Pencarian bisa berdasarkan NIK, Nama, No Hp, Email, No Rekening atau No NPWP "
+              position="top center"
+            />
               <Grid.Column>
                 <Popup
                   trigger={
                     <Input
-                      placeholder="Cari Petugas"
+                      placeholder="Cari Kader"
                       name="filter"
                       error={!filterValid}
                       fluid
@@ -403,7 +685,7 @@ class PetugasDomisili extends Component {
                     <Button
                       onClick={() => this.props.history.push("/petugas-tambah")}
                       icon labelPosition="left" primary size="small">
-                      <Icon name="add" /> Petugas
+                      <Icon name="add" /> Kader
                     </Button>
                   </Table.HeaderCell>
                   <Table.HeaderCell colSpan="6">

@@ -262,7 +262,7 @@ class Rw extends Component {
                 <Popup
                   trigger={
                     <Input
-                      placeholder="Cari Rw"
+                      placeholder="Cari Nama Rw / No Telp"
                       name="filter"
                       error={!filterValid}
                       fluid

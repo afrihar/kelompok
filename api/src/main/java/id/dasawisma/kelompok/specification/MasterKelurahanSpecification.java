@@ -21,7 +21,10 @@ public class MasterKelurahanSpecification implements Specification<MasterKelurah
   }
 
   private Predicate buildFilterKelurahanByString(Root<MasterKelurahan> root, CriteriaBuilder cb) {
-    return cb.like(cb.lower(root.get("namaKelurahan")), "%" + filteredKelurahan.getNamaKelurahan().toLowerCase() + "%");
+    return cb.or(
+        cb.like(cb.lower(root.get("namaKelurahan")), "%" + filteredKelurahan.getNamaKelurahan().toLowerCase() + "%"),
+        cb.like(cb.lower(root.get("namaKelompokKelurahan")), "%" + filteredKelurahan.getNamaKelompokKelurahan().toLowerCase() + "%")
+    );
   }
 
   private Predicate buildFilterKelurahanByKecamatan(Root<MasterKelurahan> root, CriteriaBuilder cb) {
