@@ -1,4 +1,4 @@
-import { config } from "../../Constants";
+import {config} from "../../Constants";
 
 export const alphanumeric = new RegExp("^[a-zA-Z0-9 ]+$");
 export const noKader = new RegExp("^[bkps-u]\\d{5}$");
@@ -106,7 +106,6 @@ export const getKodeWilayah = (keycloak) => {
     return "";
   }
 };
-
 export const getKodeProvinsi = (keycloak) => {
   if (isProvinsi(keycloak)) {
     return getKodeWilayah(keycloak);
@@ -116,7 +115,6 @@ export const getKodeProvinsi = (keycloak) => {
     return "";
   }
 };
-
 export const getKodeKota = (keycloak) => {
   if (isProvinsi(keycloak)) {
     return "";
@@ -128,7 +126,6 @@ export const getKodeKota = (keycloak) => {
     return "";
   }
 };
-
 export const getKodeKecamatan = (keycloak) => {
   if (isProvinsi(keycloak) || isKota(keycloak)) {
     return "";
@@ -140,7 +137,6 @@ export const getKodeKecamatan = (keycloak) => {
     return "";
   }
 };
-
 export const getKodeKelurahan = (keycloak) => {
   if (isProvinsi(keycloak) || isKota(keycloak) || isKecamatan(keycloak)) {
     return "";
@@ -152,7 +148,6 @@ export const getKodeKelurahan = (keycloak) => {
     return "";
   }
 };
-
 export const getKodeRw = (keycloak) => {
   if (isProvinsi(keycloak) || isKota(keycloak) || isKecamatan(keycloak) || isKelurahan(keycloak)) {
     return "";
@@ -164,7 +159,6 @@ export const getKodeRw = (keycloak) => {
     return "";
   }
 };
-
 export const getKodeRt = (keycloak) => {
   if (isProvinsi(keycloak) || isKota(keycloak) || isKecamatan(keycloak) || isKelurahan(keycloak) || isRw(keycloak)) {
     return "";
@@ -175,6 +169,13 @@ export const getKodeRt = (keycloak) => {
   }
 };
 
+export const getNik = (keycloak) => {
+  if (isKader(keycloak) && keycloak && keycloak.tokenParsed && keycloak.tokenParsed["preferred_username"]) {
+    return keycloak.tokenParsed["preferred_username"].toString();
+  } else {
+    return "";
+  }
+};
 export const handleLogError = (error) => {
   if (error.response) {
     console.log("error.response.data");
@@ -190,9 +191,9 @@ export const handleLogError = (error) => {
 
 export function itemPerPage() {
   return [
-    { key: "0", value: "10", text: "10" },
-    { key: "1", value: "25", text: "25" },
-    { key: "2", value: "50", text: "50" },
-    { key: "3", value: "100", text: "100" }
+    {key: "0", value: "10", text: "10"},
+    {key: "1", value: "25", text: "25"},
+    {key: "2", value: "50", text: "50"},
+    {key: "3", value: "100", text: "100"}
   ];
 }

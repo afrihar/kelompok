@@ -81,8 +81,10 @@ public class MasterRtController {
     if (errorMap != null) return errorMap;
     MasterRw rw = rwService.findByKode(rt.getRw().getKodeRw());
     rt.setRw(rw);
-    int targetBangunan = rt.getTargetBangunan();
-    generateKelompok(rt.getKodeRt(), targetBangunan);
+    if (rt.getTargetBangunan() != null && rt.getTargetBangunan() > 0) {
+      int targetBangunan = rt.getTargetBangunan();
+      generateKelompok(rt.getKodeRt(), targetBangunan);
+    }
     MasterRt masterRtSave = rtService.saveOrUpdate(rt);
     return new ResponseEntity<>(masterRtSave, HttpStatus.CREATED);
   }
@@ -104,7 +106,7 @@ public class MasterRtController {
           MasterRt rt = rtService.findByKode(kodeRt);
           kelompokDasawisma.setRtKelompok(rt);
           String templateNamaKelompok = kelurahanService.findByKode(kodeRt.substring(0, 9)).getNamaKelompokKelurahan();
-          String namaKelompok = templateNamaKelompok + "." + rt.getRw().getLabelRw() + "." + rt.getLabelRt() + "." + kelompokDasawismaService.getKelompokNextNumber(kodeRt);
+          String namaKelompok = templateNamaKelompok.trim() + "." + rt.getRw().getLabelRw().trim() + "." + rt.getLabelRt().trim() + "." + kelompokDasawismaService.getKelompokNextNumber(kodeRt);
           kelompokDasawisma.setNamaKelompok(namaKelompok);
           kelompokDasawismaService.saveOrUpdate(kelompokDasawisma);
         }

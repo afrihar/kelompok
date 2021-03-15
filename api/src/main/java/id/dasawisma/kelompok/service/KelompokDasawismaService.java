@@ -18,12 +18,20 @@ public class KelompokDasawismaService {
     return kelompokDasawismaRepository.findAll(kelompokDasawismaSpecification, paging);
   }
 
+  public Iterable<KelompokDasawisma> findAllByOrderByNamaKelompok() {
+    return kelompokDasawismaRepository.findAllByOrderByNamaKelompok();
+  }
+
   public Iterable<KelompokDasawisma> findAllByPetugasKelompok_NikOrderByNamaKelompok(String nik) {
     return kelompokDasawismaRepository.findAllByPetugasKelompok_NikOrderByNamaKelompok(nik);
   }
 
   public Iterable<KelompokDasawisma> findAllByRtKelompok_KodeRtOrderByNamaKelompok(String kodeRt) {
     return kelompokDasawismaRepository.findAllByRtKelompok_KodeRtOrderByNamaKelompok(kodeRt);
+  }
+
+  public Iterable<KelompokDasawisma> findAllByRtKelompok_Rw_Kelurahan_KodeKelurahanOrderByNamaKelompok(String kodeKelurahan) {
+    return kelompokDasawismaRepository.findAllByRtKelompok_Rw_Kelurahan_KodeKelurahanOrderByNamaKelompok(kodeKelurahan);
   }
 
   public KelompokDasawisma findById(Long id) {

@@ -17,8 +17,8 @@ const prod = {
 };
 const dev = {
   url: {
-    KEYCLOAK_BASE_URL: "http://sso.kelompok.vm",
-    API_BASE_URL: "http://backend.kelompok.vm",
+    KEYCLOAK_BASE_URL: "http://sso.docker.id",
+    API_BASE_URL: "http://kelompokapi.docker.id",
     AVATARS_DICEBEAR_URL: "https://avatars.dicebear.com/v2",
     SOA_DKI: "https://soadki.jakarta.go.id/rest/gov/dki/dukcapil/ws"
   }

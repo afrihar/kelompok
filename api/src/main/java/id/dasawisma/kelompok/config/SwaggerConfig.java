@@ -24,52 +24,72 @@ public class SwaggerConfig {
   }
 
   @Bean
+  public GroupedOpenApi actuatorApi() {
+    return GroupedOpenApi.builder().group("00. Actuator").pathsToMatch("/actuator/**").build();
+  }
+
+  @Bean
   public GroupedOpenApi provinsiApi() {
-    return GroupedOpenApi.builder().group("provinsi").pathsToMatch("/api/provinsi/**").build();
+    return GroupedOpenApi.builder().group("01. Master Provinsi").pathsToMatch("/api/provinsi/**").build();
   }
 
   @Bean
   public GroupedOpenApi kotaApi() {
-    return GroupedOpenApi.builder().group("kota").pathsToMatch("/api/kota/**").build();
+    return GroupedOpenApi.builder().group("02. Master Kota").pathsToMatch("/api/kota/**").build();
   }
 
   @Bean
   public GroupedOpenApi kecamatanApi() {
-    return GroupedOpenApi.builder().group("kecamatan").pathsToMatch("/api/kecamatan/**").build();
+    return GroupedOpenApi.builder().group("03. Master Kecamatan").pathsToMatch("/api/kecamatan/**").build();
   }
 
   @Bean
   public GroupedOpenApi kelurahanApi() {
-    return GroupedOpenApi.builder().group("kelurahan").pathsToMatch("/api/kelurahan/**").build();
+    return GroupedOpenApi.builder().group("04. Master Kelurahan").pathsToMatch("/api/kelurahan/**").build();
   }
 
   @Bean
   public GroupedOpenApi rwApi() {
-    return GroupedOpenApi.builder().group("rw").pathsToMatch("/api/rw/**").build();
+    return GroupedOpenApi.builder().group("05. Master Rw").pathsToMatch("/api/rw/**").build();
   }
 
   @Bean
   public GroupedOpenApi rtApi() {
-    return GroupedOpenApi.builder().group("rt").pathsToMatch("/api/rt/**").build();
-  }
-
-  @Bean
-  public GroupedOpenApi petugasApi() {
-    return GroupedOpenApi.builder().group("petugas").pathsToMatch("/api/petugas/**").build();
-  }
-
-  @Bean
-  public GroupedOpenApi kelompokApi() {
-    return GroupedOpenApi.builder().group("kelompok").pathsToMatch("/api/kelompok/**").build();
+    return GroupedOpenApi.builder().group("06. Master Rt").pathsToMatch("/api/rt/**").build();
   }
 
   @Bean
   public GroupedOpenApi optionsApi() {
-    return GroupedOpenApi.builder().group("options").pathsToMatch("/api/options/**").build();
+    return GroupedOpenApi.builder().group("07. Options").pathsToMatch("/api/options/**").build();
   }
 
   @Bean
-  public GroupedOpenApi actuatorApi() {
-    return GroupedOpenApi.builder().group("actuator").pathsToMatch("/actuator/**").build();
+  public GroupedOpenApi petugasApi() {
+    return GroupedOpenApi.builder().group("08. Petugas").pathsToMatch("/api/petugas/**").build();
+  }
+
+  @Bean
+  public GroupedOpenApi kelompokApi() {
+    return GroupedOpenApi.builder().group("09. Kelompok").pathsToMatch("/api/kelompok/**").build();
+  }
+
+  @Bean
+  public GroupedOpenApi bangunanApi() {
+    return GroupedOpenApi.builder().group("10. Bangunan").pathsToMatch("/api/bangunan/**").build();
+  }
+
+  @Bean
+  public GroupedOpenApi rumahTanggaApi() {
+    return GroupedOpenApi.builder().group("11. Rumah Tangga").pathsToMatch("/api/rumahtangga/**").build();
+  }
+
+  @Bean
+  public GroupedOpenApi keluargaApi() {
+    return GroupedOpenApi.builder().group("12. Keluarga").pathsToMatch("/api/keluarga/**").build();
+  }
+
+  @Bean
+  public GroupedOpenApi individuApi() {
+    return GroupedOpenApi.builder().group("13. Individu").pathsToMatch("/api/individu/**").build();
   }
 }

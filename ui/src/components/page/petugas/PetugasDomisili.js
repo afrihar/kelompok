@@ -482,7 +482,7 @@ class PetugasDomisili extends Component {
                   clearable={clearableKota}
                   fluid
                   options={kotaOptions}
-                  placeholder="Kota Tugas"
+                  placeholder="Kota Domisili"
                   onChange={this.handleOptionsChangeKota}
                   search
                   selection
@@ -495,7 +495,7 @@ class PetugasDomisili extends Component {
                   clearable={clearableKecamatan}
                   fluid
                   options={kecamatanOptions}
-                  placeholder="Kecamatan Tugas"
+                  placeholder="Kecamatan Domisili"
                   onChange={this.handleOptionsChangeKecamatan}
                   search
                   selection
@@ -511,7 +511,7 @@ class PetugasDomisili extends Component {
                   clearable={clearableKelurahan}
                   fluid
                   options={kelurahanOptions}
-                  placeholder="Kelurahan Tugas"
+                  placeholder="Kelurahan Domisili"
                   onChange={this.handleOptionsChangeKelurahan}
                   search
                   selection
@@ -525,7 +525,7 @@ class PetugasDomisili extends Component {
                   clearable={clearableRw}
                   fluid
                   options={rwOptions}
-                  placeholder="Rw Tugas"
+                  placeholder="Rw Domisili"
                   onChange={this.handleOptionsChangeRw}
                   search
                   selection
@@ -539,7 +539,7 @@ class PetugasDomisili extends Component {
                   clearable={clearableRt}
                   fluid
                   options={rtOptions}
-                  placeholder="Rt Tugas"
+                  placeholder="Rt Domisili"
                   onChange={this.handleOptionsChangeRt}
                   search
                   selection

@@ -55,8 +55,8 @@ public class KelompokDasawismaController {
     } else {
       kelompokDasawisma.setPetugasKelompok(null);
     }
-    KelompokDasawisma KelompokDasawismaSave = kelompokDasawismaService.saveOrUpdate(kelompokDasawisma);
-    return new ResponseEntity<>(KelompokDasawismaSave, HttpStatus.CREATED);
+    KelompokDasawisma kelompokDasawismaSave = kelompokDasawismaService.saveOrUpdate(kelompokDasawisma);
+    return new ResponseEntity<>(kelompokDasawismaSave, HttpStatus.CREATED);
   }
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})

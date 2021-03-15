@@ -1,5 +1,5 @@
 import axios from "axios";
-import { config } from "../../Constants";
+import {config} from "../../Constants";
 
 export const kelompokApi = {
   getUserExtrasMe,
@@ -78,19 +78,37 @@ export const kelompokApi = {
   getOptionsHubunganEmergency,
   getOptionsStatusPernikahan,
   getPetugasOptionsProvinsiEmergency,
-  getPetugasOptionsKotaEmergency
+  getPetugasOptionsKotaEmergency,
+  getBangunan,
+  getBangunanById,
+  saveBangunan,
+  deleteBangunan,
+  getBangunanOptionsKelompok,
+  getRumahTangga,
+  getRumahTanggaById,
+  saveRumahTangga,
+  deleteRumahTangga,
+  getKeluarga,
+  getKeluargaById,
+  saveKeluarga,
+  deleteKeluarga,
+  getIndividu,
+  getIndividuById,
+  saveIndividu,
+  deleteIndividu
+
 };
 
 // UserExtras
 function getUserExtrasMe(token) {
   return instance.get(`/api/userextras/me`, {
-    headers: { Authorization: bearerAuth(token) }
+    headers: {Authorization: bearerAuth(token)}
   });
 }
 
 function saveUserExtrasMe(token, userExtra) {
   return instance.post(`/api/userextras/me`, userExtra, {
-    headers: { Authorization: bearerAuth(token) }
+    headers: {Authorization: bearerAuth(token)}
   });
 }
 
@@ -140,7 +158,7 @@ function saveProvinsi(provinsi, token) {
 
 function deleteProvinsi(idProvinsi, token) {
   return instance.delete(`/api/provinsi/${idProvinsi}`, {
-    headers: { Authorization: bearerAuth(token) }
+    headers: {Authorization: bearerAuth(token)}
   });
 }
 
@@ -200,7 +218,7 @@ function saveKota(kota, token) {
 
 function deleteKota(idKota, token) {
   return instance.delete(`/api/kota/${idKota}`, {
-    headers: { Authorization: bearerAuth(token) }
+    headers: {Authorization: bearerAuth(token)}
   });
 }
 
@@ -260,7 +278,7 @@ function saveKecamatan(kecamatan, token) {
 
 function deleteKecamatan(idKecamatan, token) {
   return instance.delete(`/api/kecamatan/${idKecamatan}`, {
-    headers: { Authorization: bearerAuth(token) }
+    headers: {Authorization: bearerAuth(token)}
   });
 }
 
@@ -328,7 +346,7 @@ function saveKelurahan(kelurahan, token) {
 
 function deleteKelurahan(idKelurahan, token) {
   return instance.delete(`/api/kelurahan/${idKelurahan}`, {
-    headers: { Authorization: bearerAuth(token) }
+    headers: {Authorization: bearerAuth(token)}
   });
 }
 
@@ -379,7 +397,7 @@ function saveRw(rw, token) {
 
 function deleteRw(idRw, token) {
   return instance.delete(`/api/rw/${idRw}`, {
-    headers: { Authorization: bearerAuth(token) }
+    headers: {Authorization: bearerAuth(token)}
   });
 }
 
@@ -430,7 +448,7 @@ function saveRt(rt, token) {
 
 function deleteRt(idRt, token) {
   return instance.delete(`/api/rt/${idRt}`, {
-    headers: { Authorization: bearerAuth(token) }
+    headers: {Authorization: bearerAuth(token)}
   });
 }
 
@@ -597,7 +615,7 @@ function savePetugas(petugas, token) {
 
 function deletePetugas(nik, token) {
   return instance.delete(`/api/petugas/${nik}`, {
-    headers: { Authorization: bearerAuth(token) }
+    headers: {Authorization: bearerAuth(token)}
   });
 }
 
@@ -666,7 +684,7 @@ function saveKelompok(kelompok, token) {
 
 function deleteKelompok(idKelompok, token) {
   return instance.delete(`/api/kelompok/${idKelompok}`, {
-    headers: { Authorization: bearerAuth(token) }
+    headers: {Authorization: bearerAuth(token)}
   });
 }
 
@@ -833,6 +851,183 @@ function getPetugasOptionsKotaEmergency(kodeProvinsi, token) {
   });
 }
 
+// Bangunan
+function getBangunan(token, page, size, sortBy, direction, filterWilayah, filter) {
+  return instance.get("/api/bangunan", {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    },
+    params: {
+      page: page,
+      size: size,
+      sortBy: sortBy,
+      direction: direction,
+      filterWilayah: filterWilayah,
+      filter: filter
+    }
+  });
+}
+
+function getBangunanById(idBangunan, token) {
+  return instance.get(`/api/bangunan/${idBangunan}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function saveBangunan(bangunan, token) {
+  return instance.post("/api/bangunan", bangunan, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function deleteBangunan(idBangunan, token) {
+  return instance.delete(`/api/bangunan/${idBangunan}`, {
+    headers: {Authorization: bearerAuth(token)}
+  });
+}
+
+function getBangunanOptionsKelompok(token) {
+  return instance.get(`/api/bangunan/options-kelompok`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+// RumahTangga
+function getRumahTangga(token, page, size, sortBy, direction, filterWilayah, filter) {
+  return instance.get("/api/rumahtangga", {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    },
+    params: {
+      page: page,
+      size: size,
+      sortBy: sortBy,
+      direction: direction,
+      filterWilayah: filterWilayah,
+      filter: filter
+    }
+  });
+}
+
+function getRumahTanggaById(idRumahTangga, token) {
+  return instance.get(`/api/rumahtangga/${idRumahTangga}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function saveRumahTangga(rumahTangga, token) {
+  return instance.post("/api/rumahtangga", rumahTangga, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function deleteRumahTangga(idRumahTangga, token) {
+  return instance.delete(`/api/rumahtangga/${idRumahTangga}`, {
+    headers: {Authorization: bearerAuth(token)}
+  });
+}
+
+// Keluarga
+function getKeluarga(token, page, size, sortBy, direction, filterWilayah, filter) {
+  return instance.get("/api/keluarga", {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    },
+    params: {
+      page: page,
+      size: size,
+      sortBy: sortBy,
+      direction: direction,
+      filterWilayah: filterWilayah,
+      filter: filter
+    }
+  });
+}
+
+function getKeluargaById(idKeluarga, token) {
+  return instance.get(`/api/keluarga/${idKeluarga}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function saveKeluarga(keluarga, token) {
+  return instance.post("/api/keluarga", keluarga, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function deleteKeluarga(idKeluarga, token) {
+  return instance.delete(`/api/keluarga/${idKeluarga}`, {
+    headers: {Authorization: bearerAuth(token)}
+  });
+}
+
+// Individu
+function getIndividu(token, page, size, sortBy, direction, filterWilayah, filter) {
+  return instance.get("/api/individu", {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    },
+    params: {
+      page: page,
+      size: size,
+      sortBy: sortBy,
+      direction: direction,
+      filterWilayah: filterWilayah,
+      filter: filter
+    }
+  });
+}
+
+function getIndividuById(idIndividu, token) {
+  return instance.get(`/api/individu/${idIndividu}`, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function saveIndividu(individu, token) {
+  return instance.post("/api/individu", individu, {
+    headers: {
+      "Content-type": "application/json",
+      Authorization: bearerAuth(token)
+    }
+  });
+}
+
+function deleteIndividu(idIndividu, token) {
+  return instance.delete(`/api/individu/${idIndividu}`, {
+    headers: {Authorization: bearerAuth(token)}
+  });
+}
+
 // -- Axios
 const instance = axios.create({
   baseURL: config.url.API_BASE_URL
@@ -842,9 +1037,9 @@ instance.interceptors.response.use(
   (response) => {
     return response;
   },
-  function(error) {
+  function (error) {
     if (error.response.status === 404) {
-      return { status: error.response.status };
+      return {status: error.response.status};
     }
     return Promise.reject(error.response);
   }
