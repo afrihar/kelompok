@@ -142,7 +142,7 @@ class PetugasKelompok extends Component {
             <Header as="h2" textAlign="center"> {petugasView.nik} </Header>
             <Message negative hidden={isPetugasHaveRtTugas}>
               <Message.Header>
-                Petugas ini belum mempunyai RT Tugas.
+                Kader ini belum mempunyai RT Tugas.
               </Message.Header>
               <Message.Content>klik <a href={"/petugas-domisili/" + petugasView.nik}>disini</a> untuk
                 menugaskan..</Message.Content>

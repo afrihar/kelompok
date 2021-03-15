@@ -261,7 +261,7 @@ class Rt extends Component {
                 <Popup
                   trigger={
                     <Input
-                      placeholder="Cari Rt"
+                      placeholder="Cari Nama Rt / No Telp"
                       name="filter"
                       error={!filterValid}
                       fluid

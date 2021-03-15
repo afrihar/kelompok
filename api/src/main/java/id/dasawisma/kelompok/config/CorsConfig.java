@@ -20,7 +20,6 @@ public class CorsConfig {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     CorsConfiguration config = new CorsConfiguration();
     config.setAllowCredentials(true);
-    //TODO Config Origins
     config.setAllowedOrigins(ALLOWED_ORIGINS);
     config.setAllowedHeaders(Collections.singletonList("*"));
     config.setAllowedMethods(Collections.singletonList("*"));

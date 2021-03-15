@@ -314,8 +314,8 @@ class Kelompok extends Component {
                     <Label ribbon>Id</Label>
                   </Table.Cell>
                   <Table.HeaderCell>Nama Kelompok</Table.HeaderCell>
-                  <Table.HeaderCell>NIK Petugas</Table.HeaderCell>
-                  <Table.HeaderCell>Nama Petugas</Table.HeaderCell>
+                  <Table.HeaderCell>NIK Kader</Table.HeaderCell>
+                  <Table.HeaderCell>Nama Kader</Table.HeaderCell>
                   <Table.HeaderCell>RT</Table.HeaderCell>
                   <Table.HeaderCell>RW</Table.HeaderCell>
                   <Table.HeaderCell>Kelurahan</Table.HeaderCell>

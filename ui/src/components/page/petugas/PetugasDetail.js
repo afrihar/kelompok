@@ -553,20 +553,16 @@ class PetugasDetail extends Component {
   handleChangeDropdownRwTugas = async (e, { value }) => {
     this.setState({ isLoadingRtTugas: true, rtTugasOptions: [] });
     const error = { ...this.state.error };
-    error.rtDomisili = false;
     error.rtTugas = false;
     const form = { ...this.state.form };
-    form.rwDomisili.kodeRw = value;
     form.rwTugas.kodeRw = value;
-    form.rtDomisili.kodeRt = "";
     form.rtTugas.kodeRt = "";
     if (value) {
       try {
         const { keycloak } = this.props;
         const getRtTugasOptions = await kelompokApi.getPetugasOptionsRtTugas(value, keycloak.token);
-        const rtDomisiliOptions = getRtTugasOptions.data;
         const rtTugasOptions = getRtTugasOptions.data;
-        this.setState({ rtDomisiliOptions, rtTugasOptions });
+        this.setState({ rtTugasOptions });
       } catch (error) {
         handleLogError(error);
       }
@@ -575,10 +571,8 @@ class PetugasDetail extends Component {
   };
   handleChangeDropdownRtTugas = async (e, { value }) => {
     const error = { ...this.state.error };
-    error.rtDomisili = false;
     error.rtTugas = false;
     const form = { ...this.state.form };
-    form.rtDomisili.kodeRt = value;
     form.rtTugas.kodeRt = value;
     this.setState({ form, error });
   };
@@ -834,8 +828,8 @@ class PetugasDetail extends Component {
     this.setState({ isLoadingForm: true });
     const modal = {
       isOpen: true,
-      header: "Hapus Petugas",
-      content: `Apakah anda yakin akan menghapus Petugas dengan NIK '${petugas.nik}'?`,
+      header: "Hapus Kader",
+      content: `Apakah anda yakin akan menghapus Kader dengan NIK '${petugas.nik}'?`,
       onAction: this.handleActionModal,
       onClose: this.handleCloseModal
     };
@@ -960,15 +954,15 @@ class PetugasDetail extends Component {
           <Divider />
           <Form loading={isLoadingForm}>
             <Message negative hidden={message.isMatchWilayah}>
-              <Message.Header>Petugas ini tidak berada di wilayah tugas Anda.</Message.Header>
+              <Message.Header>Kader ini tidak berada di wilayah tugas Anda.</Message.Header>
             </Message>
             <Segment hidden={!message.isMatchWilayah} piled>
               <Segment raised>
                 <Form.Group widths="equal">
                   <Form.Field required>
-                    <label>Nama Petugas</label>
+                    <label>Nama Kader</label>
                     <Form.Input fluid id="nama" value={form.nama} error={error.nama}
-                                placeholder="Nama Petugas" onChange={this.handleChangeNama} />
+                                placeholder="Nama Kader" onChange={this.handleChangeNama} />
                   </Form.Field>
                   <Form.Field required>
                     <label>Alamat Domisili</label>
@@ -1026,7 +1020,7 @@ class PetugasDetail extends Component {
                 <Header as="h5" textAlign="center"> Wilayah Tugas {" "}
                   {isPetugasHaveKelompok ? <Popup
                     trigger={<Icon name="info circle" color="red" />}
-                    content="Wilayah Tugas tidak dapat diubah apabila petugas yang bersangkutan sedang ditugaskan ke kelompok."
+                    content="Wilayah Tugas tidak dapat diubah apabila Kader yang bersangkutan sedang ditugaskan ke kelompok."
                     position="top center"
                   /> : <></>}
                 </Header>
@@ -1223,8 +1217,8 @@ class PetugasDetail extends Component {
                                 onChange={this.handleChangeNoHpEmergencyCall} />
                   </Form.Field>
                   <Form.Field>
-                    <label>Hubungan dengan Petugas</label>
-                    <Form.Dropdown clearable selection placeholder="Hubungan dengan Petugas"
+                    <label>Hubungan dengan Kader</label>
+                    <Form.Dropdown clearable selection placeholder="Hubungan dengan Kader"
                                    options={hubunganEmergencyOptions}
                                    value={form.hubunganEmergency.id === 0 ? "" : form.hubunganEmergency.id}
                                    onChange={this.handleChangeDropdownHubunganEmergency} />

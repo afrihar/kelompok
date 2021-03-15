@@ -1,16 +1,9 @@
-import React, { Component } from "react";
-import { withKeycloak } from "@react-keycloak/web";
-import { kelompokApi } from "../util/KelompokApi";
-import { getAvatarUrl, handleLogError } from "../util/Helpers";
-import {
-  Button,
-  Container,
-  Divider,
-  Form,
-  Grid,
-  Segment,
-} from "semantic-ui-react";
-import { withRouter } from "react-router-dom";
+import React, {Component} from "react";
+import {withKeycloak} from "@react-keycloak/web";
+import {kelompokApi} from "../util/KelompokApi";
+import {getAvatarUrl, handleLogError} from "../util/Helpers";
+import {Button, Container, Divider, Form, Grid, Segment,} from "semantic-ui-react";
+import {withRouter} from "react-router-dom";
 
 class UserSettings extends Component {
   state = {
@@ -21,22 +14,22 @@ class UserSettings extends Component {
   };
 
   async componentDidMount() {
-    const { keycloak } = this.props;
+    const {keycloak} = this.props;
 
     try {
       const response = await kelompokApi.getUserExtrasMe(keycloak.token);
-      const { username, avatar } = response.data;
-      this.setState({ username, avatar, originalAvatar: avatar });
+      const {username, avatar} = response.data;
+      this.setState({username, avatar, originalAvatar: avatar});
     } catch (error) {
       handleLogError(error);
     }
   }
 
   handleSuffle = () => {
-    this.setState({ imageLoading: true });
-    const { username } = this.state;
+    this.setState({imageLoading: true});
+    const {username} = this.state;
     const avatar = username + Math.floor(Math.random() * 1000) + 1;
-    this.setState({ avatar });
+    this.setState({avatar});
   };
 
   handleCancel = () => {
@@ -44,11 +37,11 @@ class UserSettings extends Component {
   };
 
   handleSave = async () => {
-    const { avatar } = this.state;
-    const { keycloak } = this.props;
+    const {avatar} = this.state;
+    const {keycloak} = this.props;
 
     try {
-      const userExtra = { avatar };
+      const userExtra = {avatar};
       await kelompokApi.saveUserExtrasMe(keycloak.token, userExtra);
       keycloak["avatar"] = avatar;
       this.props.history.push("/home");
@@ -58,11 +51,11 @@ class UserSettings extends Component {
   };
 
   handleImageLoad = () => {
-    this.setState({ imageLoading: false });
+    this.setState({imageLoading: false});
   };
 
   render() {
-    const { avatar, originalAvatar, imageLoading } = this.state;
+    const {avatar, originalAvatar, imageLoading} = this.state;
     const avatarImage = !avatar ? (
       <></>
     ) : (
@@ -77,10 +70,10 @@ class UserSettings extends Component {
       <Container className="isi">
         <Grid centered>
           <Grid.Row>
-            <Segment style={{ width: "330px" }}>
+            <Segment style={{width: "330px"}}>
               <Form>
-                <div style={{ height: 300 }}>{avatarImage}</div>
-                <Divider />
+                <div style={{height: 300}}>{avatarImage}</div>
+                <Divider/>
                 <Button
                   fluid
                   onClick={this.handleSuffle}
@@ -89,16 +82,14 @@ class UserSettings extends Component {
                 >
                   Shuffle
                 </Button>
-                <Divider />
+                <Divider/>
                 <Button.Group fluid>
                   <Button onClick={this.handleCancel}>Cancel</Button>
-                  <Button.Or />
+                  <Button.Or/>
                   <Button
                     disabled={originalAvatar === avatar}
                     onClick={this.handleSave}
-                    positive
-                  >
-                    Save
+                    positive> Save
                   </Button>
                 </Button.Group>
               </Form>

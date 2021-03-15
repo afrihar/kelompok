@@ -835,7 +835,7 @@ class PetugasTambah extends Component {
     ) {
       return (
         <Container className="isi" text>
-          <Header as="h1" textAlign="center"> Tambah Petugas </Header>
+          <Header as="h1" textAlign="center"> Tambah Kader </Header>
           <Form loading={isLoadingForm}>
             <Form.Field required>
               <label>NIK (Nomor Induk Kependudukan)</label>
@@ -852,7 +852,7 @@ class PetugasTambah extends Component {
               </p>
             </Message>
             <Message negative hidden={!message.isShowRegisteredDawisNik}>
-              <Message.Header>NIK Sudah terdaftar sebagai Petugas Dasawisma.</Message.Header>
+              <Message.Header>NIK Sudah terdaftar sebagai Kader Dasawisma.</Message.Header>
               <Message.List>
                 <Message.Item>Nama : <b>{form.nikPetugasNama}</b></Message.Item>
                 <Message.Item>Alamat Domisili : <b>{form.nikPetugasDomisili}</b></Message.Item>
@@ -870,9 +870,9 @@ class PetugasTambah extends Component {
               <Segment raised>
                 <Form.Group widths="equal">
                   <Form.Field required>
-                    <label>Nama Petugas</label>
+                    <label>Nama Kader</label>
                     <Form.Input fluid id="nama" value={form.nama} error={error.nama}
-                                placeholder="Nama Petugas" onChange={this.handleChangeNama} />
+                                placeholder="Nama Kader" onChange={this.handleChangeNama} />
                   </Form.Field>
                   <Form.Field required>
                     <label>Alamat Domisili</label>
@@ -1121,8 +1121,8 @@ class PetugasTambah extends Component {
                                 onChange={this.handleChangeNoHpEmergencyCall} />
                   </Form.Field>
                   <Form.Field>
-                    <label>Hubungan dengan Petugas</label>
-                    <Form.Dropdown clearable selection placeholder="Hubungan dengan Petugas"
+                    <label>Hubungan dengan Kader</label>
+                    <Form.Dropdown clearable selection placeholder="Hubungan dengan Kader"
                                    options={hubunganEmergencyOptions}
                                    value={form.hubunganEmergency.id === 0 ? "" : form.hubunganEmergency.id}
                                    onChange={this.handleChangeDropdownHubunganEmergency} />

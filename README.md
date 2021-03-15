@@ -99,6 +99,7 @@ As `Keycloak` supports [`PKCE`](https://tools.ietf.org/html/rfc7636) (`Proof Key
 You can manage kelompok by accessing directly `kelompok-api` endpoints using the Swagger website or `curl`. However, for the secured endpoints like `POST /api/kelompok`, `PUT /api/kelompok/{id}`, `DELETE /api/kelompok/{id}`, etc, you need to inform an access token issued by `Keycloak`.
 
 ### Getting Access Token
+#getting-access-token
 
 - Open a terminal
 
@@ -144,3 +145,11 @@ You can manage kelompok by accessing directly `kelompok-api` endpoints using the
   ncu -u
   npm install
   ```
+  
+### .htaccess config
+```
+Options -MultiViews
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.html [QSA,L]
+```

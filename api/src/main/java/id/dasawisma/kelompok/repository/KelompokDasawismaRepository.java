@@ -12,9 +12,13 @@ import javax.validation.constraints.Size;
 public interface KelompokDasawismaRepository extends JpaRepository<KelompokDasawisma, Long>, JpaSpecificationExecutor<KelompokDasawisma> {
   KelompokDasawisma findKelompokDasawismaById(Long id);
 
+  Iterable<KelompokDasawisma> findAllByOrderByNamaKelompok();
+
   Iterable<KelompokDasawisma> findAllByPetugasKelompok_NikOrderByNamaKelompok(@NotBlank(message = "NIK harus diisi.") @Size(min = 16, max = 16, message = "NIK Harus 16 Karakter") String nik);
 
   Iterable<KelompokDasawisma> findAllByRtKelompok_KodeRtOrderByNamaKelompok(@NotBlank(message = "Kode RT harus diisi.") String rtKelompok_kodeRt);
+
+  Iterable<KelompokDasawisma> findAllByRtKelompok_Rw_Kelurahan_KodeKelurahanOrderByNamaKelompok(@NotBlank(message = "Kode Kelurahan harus diisi.") String kodeKelurahan);
 
   Integer countAllByRtKelompok_KodeRt(@NotBlank(message = "Kode RT harus diisi.") String rtKelompok_kodeRt);
 

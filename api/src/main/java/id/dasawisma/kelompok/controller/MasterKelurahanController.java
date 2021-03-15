@@ -50,6 +50,7 @@ public class MasterKelurahanController {
       Pageable paging = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.valueOf(direction), sortBy));
       MasterKelurahan filteredKelurahan = new MasterKelurahan();
       filteredKelurahan.setNamaKelurahan(filter);
+      filteredKelurahan.setNamaKelompokKelurahan(filter);
       if (filterKecamatan != null) {
         MasterKecamatan filterMasterKecamatan = new MasterKecamatan();
         filterMasterKecamatan.setKodeKecamatan(filterKecamatan);
@@ -123,5 +124,4 @@ public class MasterKelurahanController {
     }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
-
 }
