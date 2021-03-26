@@ -38,6 +38,14 @@ public class BangunanService {
     return lastNoUrut;
   }
 
+  public Integer countBangunanByIdKelompok(Long idKelompok) {
+    Integer lastNoUrut;
+    Bangunan bangunan = bangunanRepository.findFirstByKelompokBangunan_IdOrderByNoUrutDesc(idKelompok);
+    if (bangunan == null || bangunan.getNoUrut() == null) lastNoUrut = 0;
+    else lastNoUrut = bangunan.getNoUrut();
+    return lastNoUrut;
+  }
+
   public Bangunan saveOrUpdate(Bangunan bangunan) {
     return bangunanRepository.save(bangunan);
   }

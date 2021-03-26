@@ -1,8 +1,8 @@
-import React, { Component } from "react";
-import { withKeycloak } from "@react-keycloak/web";
-import { kelompokApi } from "../../util/KelompokApi";
+import React, {Component} from "react";
+import {withKeycloak} from "@react-keycloak/web";
+import {kelompokApi} from "../../util/KelompokApi";
 import {
-  alphanumeric, getKodeWilayah,
+  alphanumeric,
   handleLogError,
   isKecamatan,
   isKelurahan,
@@ -14,7 +14,7 @@ import {
   itemPerPage
 } from "../../util/Helpers";
 import debounce from "lodash.debounce";
-import { Redirect } from "react-router-dom";
+import {Redirect} from "react-router-dom";
 import {
   Button,
   Container,
@@ -44,51 +44,43 @@ class Kelompok extends Component {
   };
 
   async componentDidMount() {
-    this.setState({ isLoadingPage: true });
+    this.setState({isLoadingPage: true});
     try {
-      const { keycloak } = this.props;
-      let getKelompokOptions;
-      if (isPusdatin(keycloak) || isProvinsi(keycloak)) {
-        getKelompokOptions = await kelompokApi.getKelompokOptionsKota(
-          keycloak.token
-        );
-      } else if (isKota(keycloak)) {
-        getKelompokOptions = await kelompokApi.getKelompokOptionsKecamatan(
-          getKodeWilayah(keycloak),
-          keycloak.token
-        );
-      } else if (isKecamatan(keycloak)) {
-        getKelompokOptions = await kelompokApi.getKelompokOptionsKelurahan(
-          getKodeWilayah(keycloak),
-          keycloak.token
-        );
-      } else if (isKelurahan(keycloak)) {
-        getKelompokOptions = await kelompokApi.getKelompokOptionsRw(
-          getKodeWilayah(keycloak),
-          keycloak.token
-        );
-      } else if (isRw(keycloak)) {
-        getKelompokOptions = await kelompokApi.getKelompokOptionsRt(
-          getKodeWilayah(keycloak),
-          keycloak.token
-        );
-      }
-      if (getKelompokOptions !== undefined) {
-        const kelompokOptions = getKelompokOptions.data;
-        this.setState({ kelompokOptions });
-      }
+      const {keycloak} = this.props;
+      const getKotaOptions = await kelompokApi.getKelompokOptionsKota(keycloak.token);
+      let valueKota;
+      if (getKotaOptions.data.length === 1) {
+        valueKota = getKotaOptions.data[0].key;
+        const getKecamatanOptions = await kelompokApi.getKelompokOptionsKecamatan(valueKota, keycloak.token);
+        let valueKecamatan;
+        if (getKecamatanOptions.data.length === 1) {
+          valueKecamatan = getKecamatanOptions.data[0].key;
+          const getKelurahanOptions = await kelompokApi.getKelompokOptionsKelurahan(valueKecamatan, keycloak.token);
+          let valueKelurahan;
+          if (getKelurahanOptions.data.length === 1) {
+            valueKelurahan = getKelurahanOptions.data[0].key;
+            const getRwOptions = await kelompokApi.getKelompokOptionsRw(valueKelurahan, keycloak.token);
+            let valueRw;
+            if (getRwOptions.data.length === 1) valueRw = getRwOptions.data[0].key; else this.setState({clearableRw: true});
+            this.setState({rwOptions: getRwOptions.data, valueRw});
+          } else this.setState({clearableKelurahan: true});
+          this.setState({kelurahanOptions: getKelurahanOptions.data, valueKelurahan});
+        } else this.setState({clearableKecamatan: true});
+        this.setState({kecamatanOptions: getKecamatanOptions.data, valueKecamatan});
+      } else this.setState({clearableKota: true});
+      this.setState({kotaOptions: getKotaOptions.data, valueKota});
       await this.handleGetKelompok();
     } catch (error) {
       handleLogError(error);
     }
-    this.setState({ isLoadingPage: false });
+    this.setState({isLoadingPage: false});
   }
 
   handleGetKelompok = async () => {
-    this.setState({ isLoadingPage: true });
+    this.setState({isLoadingPage: true});
     try {
-      const { keycloak } = this.props;
-      const { size, sortBy, direction, filterWilayah, filter } = this.state;
+      const {keycloak} = this.props;
+      const {size, sortBy, direction, filterWilayah, filter} = this.state;
       const response = await kelompokApi.getKelompok(
         keycloak.token,
         1,
@@ -99,20 +91,20 @@ class Kelompok extends Component {
         filter
       );
       const responseKelompok = response.data;
-      this.setState({ responseKelompok });
+      this.setState({responseKelompok});
     } catch (error) {
       handleLogError(error);
     }
-    this.setState({ isLoadingPage: false });
+    this.setState({isLoadingPage: false});
   };
   handleSearch = debounce(async (filter) => {
-    this.setState({ isLoadingSearch: true });
+    this.setState({isLoadingSearch: true});
     if (filter !== "" && !alphanumeric.test(filter)) {
-      this.setState({ filterValid: false });
+      this.setState({filterValid: false});
     } else {
-      this.setState({ filterValid: true, filter: filter });
-      const { keycloak } = this.props;
-      const { size, sortBy, direction, filterWilayah } = this.state;
+      this.setState({filterValid: true, filter: filter});
+      const {keycloak} = this.props;
+      const {size, sortBy, direction, filterWilayah} = this.state;
       if (filter) {
         try {
           const response = await kelompokApi.getKelompok(
@@ -124,22 +116,22 @@ class Kelompok extends Component {
             filterWilayah,
             filter
           );
-          this.setState({ responseKelompok: response.data });
+          this.setState({responseKelompok: response.data});
         } catch (error) {
           handleLogError(error);
         }
       } else {
-        this.setState({ filter: null, filterValid: true });
+        this.setState({filter: null, filterValid: true});
         await this.handleGetKelompok();
       }
     }
-    this.setState({ isLoadingSearch: false });
+    this.setState({isLoadingSearch: false});
   }, 350);
-  handleOnSizeChange = async (e, { value }) => {
-    this.setState({ isLoadingPage: true, size: value });
-    const { keycloak } = this.props;
+  handleOnSizeChange = async (e, {value}) => {
+    this.setState({isLoadingPage: true, size: value});
+    const {keycloak} = this.props;
     try {
-      const { sortBy, direction, filterWilayah, filter } = this.state;
+      const {sortBy, direction, filterWilayah, filter} = this.state;
       const response = await kelompokApi.getKelompok(
         keycloak.token,
         1,
@@ -149,16 +141,16 @@ class Kelompok extends Component {
         filterWilayah,
         filter
       );
-      this.setState({ responseKelompok: response.data });
+      this.setState({responseKelompok: response.data});
     } catch (error) {
       handleLogError(error);
     }
-    this.setState({ isLoadingPage: false });
+    this.setState({isLoadingPage: false});
   };
-  handlePaginationChange = async (e, { activePage }) => {
-    this.setState({ isLoadingPage: true, page: activePage });
-    const { keycloak } = this.props;
-    const { size, sortBy, direction, filterWilayah, filter } = this.state;
+  handlePaginationChange = async (e, {activePage}) => {
+    this.setState({isLoadingPage: true, page: activePage});
+    const {keycloak} = this.props;
+    const {size, sortBy, direction, filterWilayah, filter} = this.state;
     try {
       const response = await kelompokApi.getKelompok(
         keycloak.token,
@@ -169,18 +161,36 @@ class Kelompok extends Component {
         filterWilayah,
         filter
       );
-      this.setState({ responseKelompok: response.data });
+      this.setState({responseKelompok: response.data});
     } catch (error) {
       handleLogError(error);
     }
-    this.setState({ isLoadingPage: false });
+    this.setState({isLoadingPage: false});
   };
-  handleOptionsChange = async (e, { value }) => {
-    this.setState({ isLoadingPage: true, filterWilayah: value });
-    const { keycloak } = this.props;
-    const { size, sortBy, direction, filter } = this.state;
+  handleOptionsChangeKota = async (e, {value}) => {
+    this.setState({
+      isLoadingPage: true,
+      isLoadingOptionKecamatan: true,
+      kecamatanOptions: [],
+      kelurahanOptions: [],
+      rwOptions: [],
+      rtOptions: [],
+      valueKecamatan: "",
+      valueKelurahan: "",
+      valueRw: "",
+      valueRt: "",
+      filterWilayah: value
+    });
+    const {keycloak} = this.props;
+    const {size, sortBy, direction, filter} = this.state;
     if (value !== "") {
       try {
+        const getKecamatanOptions = await kelompokApi.getKelompokOptionsKecamatan(value, keycloak.token);
+        this.setState({
+          kecamatanOptions: getKecamatanOptions.data,
+          isLoadingOptionKecamatan: false,
+          clearableKecamatan: true
+        });
         const response = await kelompokApi.getKelompok(
           keycloak.token,
           1,
@@ -190,11 +200,12 @@ class Kelompok extends Component {
           value,
           filter
         );
-        this.setState({ responseKelompok: response.data });
+        this.setState({responseKelompok: response.data});
       } catch (error) {
         handleLogError(error);
       }
     } else {
+      this.setState({isLoadingOptionKecamatan: false});
       try {
         const response = await kelompokApi.getKelompok(
           keycloak.token,
@@ -202,19 +213,198 @@ class Kelompok extends Component {
           size,
           sortBy,
           direction,
-          undefined,
+          31,
           filter
         );
-        this.setState({ responseKelompok: response.data, filterWilayah: undefined });
+        const responseKelompok = response.data;
+        this.setState({responseKelompok, filterWilayah: 31});
       } catch (error) {
         handleLogError(error);
       }
     }
-    this.setState({ isLoadingPage: false });
+    this.setState({isLoadingPage: false});
+  };
+  handleOptionsChangeKecamatan = async (e, {value}) => {
+    this.setState({
+      isLoadingPage: true,
+      isLoadingOptionKelurahan: true,
+      kelurahanOptions: [],
+      rwOptions: [],
+      rtOptions: [],
+      valueKecamatan: value,
+      valueKelurahan: "",
+      valueRw: "",
+      valueRt: "",
+      filterWilayah: value
+    });
+    const {keycloak} = this.props;
+    const {size, sortBy, direction, filter} = this.state;
+    if (value !== "") {
+      try {
+        const getKelurahanOptions = await kelompokApi.getKelompokOptionsKelurahan(value, keycloak.token);
+        this.setState({
+          kelurahanOptions: getKelurahanOptions.data,
+          isLoadingOptionKelurahan: false,
+          clearableKelurahan: true
+        });
+        const response = await kelompokApi.getKelompok(
+          keycloak.token,
+          1,
+          size,
+          sortBy,
+          direction,
+          value,
+          filter
+        );
+        this.setState({responseKelompok: response.data});
+      } catch (error) {
+        handleLogError(error);
+      }
+    } else {
+      try {
+        this.setState({isLoadingOptionKelurahan: false});
+        const response = await kelompokApi.getKelompok(
+          keycloak.token,
+          1,
+          size,
+          sortBy,
+          direction,
+          this.state.valueKecamatan,
+          filter
+        );
+        this.setState({responseKelompok: response.data});
+      } catch (error) {
+        handleLogError(error);
+      }
+      this.setState({isLoadingOptionKecamatan: false});
+    }
+    this.setState({isLoadingPage: false});
+  };
+  handleOptionsChangeKelurahan = async (e, {value}) => {
+    this.setState({
+      isLoadingPage: true,
+      isLoadingOptionRw: true,
+      rwOptions: [],
+      rtOptions: [],
+      valueKelurahan: value,
+      valueRw: "",
+      valueRt: "",
+      filterWilayah: value
+    });
+    const {keycloak} = this.props;
+    const {size, sortBy, direction, filter} = this.state;
+    if (value !== "") {
+      try {
+        const getRwOptions = await kelompokApi.getKelompokOptionsRw(value, keycloak.token);
+        this.setState({rwOptions: getRwOptions.data, isLoadingOptionRw: false, clearableRw: true});
+        const response = await kelompokApi.getKelompok(
+          keycloak.token,
+          1,
+          size,
+          sortBy,
+          direction,
+          value,
+          filter
+        );
+        this.setState({responseKelompok: response.data});
+      } catch (error) {
+        handleLogError(error);
+      }
+    } else {
+      try {
+        this.setState({isLoadingOptionRw: false});
+        const response = await kelompokApi.getKelompok(
+          keycloak.token,
+          1,
+          size,
+          sortBy,
+          direction,
+          this.state.valueKecamatan,
+          filter
+        );
+        this.setState({responseKelompok: response.data});
+      } catch (error) {
+        handleLogError(error);
+      }
+      this.setState({isLoadingOptionKelurahan: false});
+    }
+    this.setState({isLoadingPage: false});
+  };
+  handleOptionsChangeRw = async (e, {value}) => {
+    this.setState({
+      isLoadingPage: true,
+      rtOptions: [],
+      isLoadingOptionRt: true,
+      valueRw: value,
+      valueRt: "",
+      filterWilayah: value
+    });
+    const {keycloak} = this.props;
+    const {size, sortBy, direction, filter} = this.state;
+    if (value !== "") {
+      try {
+        const getRtOptions = await kelompokApi.getKelompokOptionsRt(value, keycloak.token);
+        this.setState({rtOptions: getRtOptions.data, isLoadingOptionRt: false, clearableRt: true});
+        const response = await kelompokApi.getKelompok(
+          keycloak.token,
+          1,
+          size,
+          sortBy,
+          direction,
+          value,
+          filter
+        );
+        this.setState({responseKelompok: response.data});
+      } catch (error) {
+        handleLogError(error);
+      }
+    } else {
+      try {
+        this.setState({isLoadingOptionRt: false});
+        const response = await kelompokApi.getKelompok(
+          keycloak.token,
+          1,
+          size,
+          sortBy,
+          direction,
+          this.state.valueKelurahan,
+          filter
+        );
+        this.setState({responseKelompok: response.data});
+      } catch (error) {
+        handleLogError(error);
+      }
+      this.setState({isLoadingOptionRt: false});
+    }
+    this.setState({isLoadingPage: false});
+  };
+  handleOptionsChangeRt = async (e, {value}) => {
+    this.setState({
+      isLoadingPage: true,
+      valueRt: value,
+      filterWilayah: value
+    });
+    const {keycloak} = this.props;
+    const {size, sortBy, direction, filter} = this.state;
+    try {
+      const response = await kelompokApi.getKelompok(
+        keycloak.token,
+        1,
+        size,
+        sortBy,
+        direction,
+        value ? value : this.state.valueRw,
+        filter
+      );
+      this.setState({responseKelompok: response.data});
+    } catch (error) {
+      handleLogError(error);
+    }
+    this.setState({isLoadingPage: false});
   };
 
   render() {
-    const { keycloak } = this.props;
+    const {keycloak} = this.props;
     if (
       isPusdatin(keycloak) ||
       isProvinsi(keycloak) ||
@@ -230,9 +420,33 @@ class Kelompok extends Component {
         isLoadingPage,
         isLoadingSearch,
         responseKelompok,
-        kelompokOptions,
+        isLoadingOptionKecamatan,
+        isLoadingOptionKelurahan,
+        isLoadingOptionRw,
+        isLoadingOptionRt,
+        // kelompokOptions,
+        kotaOptions,
+        valueKota,
+        clearableKota,
+        kecamatanOptions,
+        valueKecamatan,
+        clearableKecamatan,
+        kelurahanOptions,
+        valueKelurahan,
+        clearableKelurahan,
+        rwOptions,
+        valueRw,
+        clearableRw,
+        rtOptions,
+        valueRt,
+        clearableRt,
         filter
       } = this.state;
+      const provinsiOptions = [{
+        key: "31",
+        text: "DKI JAKARTA",
+        value: "31"
+      }];
       let popupMessage = "";
       if (!filterValid) {
         popupMessage = "Karakter Tidak valid.";
@@ -245,6 +459,87 @@ class Kelompok extends Component {
             Kelompok Dasawisma
           </Header>
           <Grid columns="equal" verticalAlign="middle">
+            <GridRow>
+              <Grid.Column>
+                <Dropdown
+                  fluid
+                  options={provinsiOptions}
+                  selection
+                  value={"31"}
+                />
+              </Grid.Column>
+              <Grid.Column>
+                <Dropdown
+                  clearable={clearableKota}
+                  fluid
+                  options={kotaOptions}
+                  placeholder="Kota Tugas"
+                  onChange={this.handleOptionsChangeKota}
+                  search
+                  selection
+                  scrolling
+                  value={valueKota}
+                />
+              </Grid.Column>
+              <Grid.Column>
+                <Dropdown
+                  clearable={clearableKecamatan}
+                  fluid
+                  options={kecamatanOptions}
+                  placeholder="Kecamatan Tugas"
+                  onChange={this.handleOptionsChangeKecamatan}
+                  search
+                  selection
+                  scrolling
+                  value={valueKecamatan}
+                  loading={isLoadingOptionKecamatan}
+                />
+              </Grid.Column>
+            </GridRow>
+            <GridRow>
+              <Grid.Column>
+                <Dropdown
+                  clearable={clearableKelurahan}
+                  fluid
+                  options={kelurahanOptions}
+                  placeholder="Kelurahan Tugas"
+                  onChange={this.handleOptionsChangeKelurahan}
+                  search
+                  selection
+                  scrolling
+                  value={valueKelurahan}
+                  loading={isLoadingOptionKelurahan}
+                />
+              </Grid.Column>
+              <Grid.Column>
+                <Dropdown
+                  clearable={clearableRw}
+                  fluid
+                  options={rwOptions}
+                  placeholder="Rw Tugas"
+                  onChange={this.handleOptionsChangeRw}
+                  search
+                  selection
+                  scrolling
+                  value={valueRw}
+                  loading={isLoadingOptionRw}
+                />
+              </Grid.Column>
+              <Grid.Column>
+                <Dropdown
+                  clearable={clearableRt}
+                  fluid
+                  options={rtOptions}
+                  placeholder="Rt Tugas"
+                  onChange={this.handleOptionsChangeRt}
+                  search
+                  selection
+                  scrolling
+                  value={valueRt}
+                  loading={isLoadingOptionRt}
+                />
+              </Grid.Column>
+            </GridRow>
             <GridRow>
               <Grid.Column>
                 <React.Fragment>
@@ -261,27 +556,27 @@ class Kelompok extends Component {
                   {filter ? " (filter)" : ""}
                 </React.Fragment>
               </Grid.Column>
-              <Grid.Column>
-                {isPusdatin(keycloak) ||
-                isProvinsi(keycloak) ||
-                isKota(keycloak) ||
-                isKecamatan(keycloak) ||
-                isKelurahan(keycloak) ||
-                isRw(keycloak) ? (
-                  <Dropdown
-                    clearable
-                    fluid
-                    options={kelompokOptions}
-                    placeholder="Filter Kelompok By Wilayah"
-                    onChange={this.handleOptionsChange}
-                    search
-                    selection
-                    scrolling
-                  />
-                ) : (
-                  <></>
-                )}
-              </Grid.Column>
+              {/*<Grid.Column>*/}
+              {/*  {isPusdatin(keycloak) ||*/}
+              {/*  isProvinsi(keycloak) ||*/}
+              {/*  isKota(keycloak) ||*/}
+              {/*  isKecamatan(keycloak) ||*/}
+              {/*  isKelurahan(keycloak) ||*/}
+              {/*  isRw(keycloak) ? (*/}
+              {/*    <Dropdown*/}
+              {/*      clearable*/}
+              {/*      fluid*/}
+              {/*      options={kelompokOptions}*/}
+              {/*      placeholder="Filter Kelompok By Wilayah"*/}
+              {/*      onChange={this.handleOptionsChange}*/}
+              {/*      search*/}
+              {/*      selection*/}
+              {/*      scrolling*/}
+              {/*    />*/}
+              {/*  ) : (*/}
+              {/*    <></>*/}
+              {/*  )}*/}
+              {/*</Grid.Column>*/}
               <Grid.Column>
                 <Popup
                   trigger={
@@ -305,7 +600,7 @@ class Kelompok extends Component {
             </GridRow>
           </Grid>
           {isLoadingPage ? (
-            <Loader active />
+            <Loader active/>
           ) : (
             <Table compact selectable definition striped>
               <Table.Header fullWidth>
@@ -319,6 +614,8 @@ class Kelompok extends Component {
                   <Table.HeaderCell>RT</Table.HeaderCell>
                   <Table.HeaderCell>RW</Table.HeaderCell>
                   <Table.HeaderCell>Kelurahan</Table.HeaderCell>
+                  <Table.HeaderCell>Target Bangunan</Table.HeaderCell>
+                  {/*<Table.HeaderCell>Jumlah Bangunan</Table.HeaderCell>*/}
                 </Table.Row>
               </Table.Header>
               <Table.Body>
@@ -336,7 +633,7 @@ class Kelompok extends Component {
                       ) : (
                         <Table.Cell error>
                           {" "}
-                          <Icon name="attention" />
+                          <Icon name="attention"/>
                         </Table.Cell>
                       )}
                       {kelompok.petugasKelompok ? (
@@ -344,7 +641,7 @@ class Kelompok extends Component {
                       ) : (
                         <Table.Cell error>
                           {" "}
-                          <Icon name="attention" />
+                          <Icon name="attention"/>
                         </Table.Cell>
                       )}
                       {kelompok.rtKelompok ? (
@@ -352,7 +649,7 @@ class Kelompok extends Component {
                       ) : (
                         <Table.Cell error>
                           {" "}
-                          <Icon name="attention" />
+                          <Icon name="attention"/>
                         </Table.Cell>
                       )}
                       {kelompok.rtKelompok ? (
@@ -360,7 +657,7 @@ class Kelompok extends Component {
                       ) : (
                         <Table.Cell error>
                           {" "}
-                          <Icon name="attention" />
+                          <Icon name="attention"/>
                         </Table.Cell>
                       )}
                       {kelompok.rtKelompok ? (
@@ -368,9 +665,25 @@ class Kelompok extends Component {
                       ) : (
                         <Table.Cell error>
                           {" "}
-                          <Icon name="attention" />
+                          <Icon name="attention"/>
                         </Table.Cell>
                       )}
+                      {kelompok.targetBangunanKelompok ? (
+                        <Table.Cell>{kelompok.targetBangunanKelompok}</Table.Cell>
+                      ) : (
+                        <Table.Cell error>
+                          {" "}
+                          <Icon name="attention"/>
+                        </Table.Cell>
+                      )}
+                      {/*{kelompok.jumlahBangunan ? (*/}
+                      {/*  <Table.Cell>{kelompok.jumlahBangunan}</Table.Cell>*/}
+                      {/*) : (*/}
+                      {/*  <Table.Cell error>*/}
+                      {/*    {" "}*/}
+                      {/*    <Icon name="attention"/>*/}
+                      {/*  </Table.Cell>*/}
+                      {/*)}*/}
                     </Table.Row>
                   ))
                 ) : (
@@ -383,7 +696,7 @@ class Kelompok extends Component {
                     {(isKelurahan(keycloak) || isPusdatin(keycloak)) ? <Button
                       onClick={() => this.props.history.push("/kelompok/tambah")}
                       icon labelPosition="left" primary size="small">
-                      <Icon name="add" /> Kelompok
+                      <Icon name="add"/> Kelompok
                     </Button> : <></>}
                   </Table.HeaderCell>
                   <Table.HeaderCell colSpan="5">
@@ -395,19 +708,19 @@ class Kelompok extends Component {
                         activePage={responseKelompok.currentPage}
                         totalPages={responseKelompok.totalPages}
                         firstItem={{
-                          content: <Icon name="angle double left" />,
+                          content: <Icon name="angle double left"/>,
                           icon: true
                         }}
                         lastItem={{
-                          content: <Icon name="angle double right" />,
+                          content: <Icon name="angle double right"/>,
                           icon: true
                         }}
                         prevItem={{
-                          content: <Icon name="angle left" />,
+                          content: <Icon name="angle left"/>,
                           icon: true
                         }}
                         nextItem={{
-                          content: <Icon name="angle right" />,
+                          content: <Icon name="angle right"/>,
                           icon: true
                         }}
                         pointing
@@ -424,7 +737,7 @@ class Kelompok extends Component {
         </Container>
       );
     } else {
-      return <Redirect to="/" />;
+      return <Redirect to="/"/>;
     }
   }
 }

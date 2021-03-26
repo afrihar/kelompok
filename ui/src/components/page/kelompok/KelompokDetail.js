@@ -35,9 +35,10 @@ class KelompokDetail extends Component {
     kelurahan: {kodeKelurahan: ""},
     rw: {kodeRw: ""},
     rtKelompok: {kodeRt: ""},
+    targetBangunanKelompok: "",
     petugasKelompok: {nik: ""}
   };
-  errorInitialState = {rt: false};
+  errorInitialState = {rt: false, targetBangunanKelompok: false};
   messageInitialState = {isMatchWilayah: false};
   state = {
     isLoadingForm: false,
@@ -54,7 +55,8 @@ class KelompokDetail extends Component {
     rtOptions: [],
     petugasOptions: [],
     namaKelompokKelurahan: "",
-    disabledWilayah: false
+    disabledWilayah: false,
+    disabledTarget: false
   };
 
   async componentDidMount() {
@@ -101,7 +103,11 @@ class KelompokDetail extends Component {
             || (isPusdatin(keycloak))
           ) {
             this.setState({message: {isMatchWilayah: true}});
-            if (kelompok.id) form.id = kelompok.id;
+            if (kelompok.id) {
+              form.id = kelompok.id
+              const jmlBangunan = await kelompokApi.getJumlahBangunanByKelompok(id, keycloak.token);
+              form.jmlBangunan = jmlBangunan.data;
+            }
             if (kelompok.namaKelompok) form.namaKelompok = kelompok.namaKelompok;
             if (kelompok.rtKelompok) {
               form.kota.kodeKota = kelompok.rtKelompok.rw.kelurahan.kecamatan.kota.kodeKota;
@@ -127,6 +133,10 @@ class KelompokDetail extends Component {
             }
             if (kelompok.petugasKelompok) {
               form.petugasKelompok.nik = kelompok.petugasKelompok.nik;
+            }
+            if (kelompok.targetBangunanKelompok) {
+              form.targetBangunanKelompok = kelompok.targetBangunanKelompok;
+              this.setState({disabledTarget: true});
             }
             this.setState({form, disabledWilayah: true});
           }
@@ -276,14 +286,23 @@ class KelompokDetail extends Component {
     form.petugasKelompok.nik = value;
     this.setState({form});
   };
+  handleChangeNumber = (e) => {
+    const re = /^[0-9\b]+$/;
+    if (e.target.value === "" || re.test(e.target.value)) {
+      const {id, value} = e.target;
+      const form = {...this.state.form};
+      form[id] = value;
+      this.setState({form});
+    }
+  };
   handleSaveKelompok = async () => {
     if (!(this.isValidForm())) {
       return;
     }
     this.setState({isLoadingForm: true});
     try {
-      const {id, namaKelompok, rtKelompok, petugasKelompok} = this.state.form;
-      const kelompok = {id, namaKelompok, rtKelompok, petugasKelompok};
+      const {id, namaKelompok, rtKelompok, petugasKelompok, targetBangunanKelompok} = this.state.form;
+      const kelompok = {id, namaKelompok, rtKelompok, petugasKelompok, targetBangunanKelompok};
       const {keycloak} = this.props;
       await kelompokApi.saveKelompok(kelompok, keycloak.token);
       toast.success(
@@ -306,12 +325,20 @@ class KelompokDetail extends Component {
     const form = {...this.state.form};
     const error = {...this.state.error};
     let rtError = false;
+    let targetBangunanKelompokError = false;
     if (form.rtKelompok.kodeRt.trim() === "") {
       rtError = true;
       error.rt = {pointing: "above", content: "RT Kelompok harus diisi"};
     }
+    if (form.targetBangunanKelompok > 20) {
+      targetBangunanKelompokError = true;
+      error.targetBangunanKelompok = {
+        pointing: "above",
+        content: "Target Bangunan tidak boleh lebih dari 20 per Kelompok"
+      };
+    }
     this.setState({error});
-    return (!rtError);
+    return (!(rtError || targetBangunanKelompokError));
   };
   handleClickBack = () => this.props.history.push("/kelompok");
   handleKeyPressBack = (e) => {
@@ -342,7 +369,8 @@ class KelompokDetail extends Component {
       rwOptions,
       rtOptions,
       petugasOptions,
-      disabledWilayah
+      disabledWilayah,
+      disabledTarget
     } = this.state;
     if (isPusdatin(keycloak) || isKelurahan(keycloak)) {
       return (
@@ -428,6 +456,28 @@ class KelompokDetail extends Component {
                 </Form.Group>
               </Segment>
               <Segment raised>
+                <Form.Field>
+                  <label>Target Bangunan per Kelompok</label>
+                  <Form.Input
+                    disabled={disabledTarget}
+                    icon="home" iconPosition="left"
+                    fluid
+                    placeholder="Target Bangunan per Kelompok"
+                    maxLength="2"
+                    id="targetBangunanKelompok"
+                    error={error.targetBangunanKelompok}
+                    onChange={this.handleChangeNumber}
+                    value={form.targetBangunanKelompok}/>
+                </Form.Field>
+                <Form.Field>
+                  <label>Jumlah Bangunan yang sudah Terbentuk</label>
+                  <Form.Input
+                    icon="home" iconPosition="left"
+                    fluid
+                    placeholder="Jumlah Bangunan"
+                    id="jmlBangunan"
+                    value={form.jmlBangunan}/>
+                </Form.Field>
                 <Form.Field>
                   <label>Kader</label>
                   <Form.Dropdown clearable selection placeholder="Kader" options={petugasOptions}

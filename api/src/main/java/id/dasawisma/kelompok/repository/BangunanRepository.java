@@ -13,5 +13,7 @@ public interface BangunanRepository extends JpaRepository<Bangunan, Long>, JpaSp
 
   Bangunan findFirstByKelompokBangunan_IdOrderByNoUrutDesc(Long idKelompok);
 
+  Integer countAllByKelompokBangunan_Id(@NotBlank(message = "Id Kelompok harus diisi.") Long idKelompok);
+
   Iterable<Bangunan> findAllByKelompokBangunan_IdOrderByNoUrut(@NotBlank(message = "Id Kelompok harus diisi.") Long idKelompok);
 }
