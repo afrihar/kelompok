@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 
 @Data
 @Entity
@@ -20,7 +19,6 @@ public class Bangunan {
   @Column(name = "no_urut")
   private Integer noUrut;
   @Column(name = "identifikasi")
-  @NotBlank(message = "Identifikasi Bangunan harus diisi.")
   private String identifikasi;
   @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
   @JoinColumn(name = "id_kelompok", referencedColumnName = "id", nullable = false)

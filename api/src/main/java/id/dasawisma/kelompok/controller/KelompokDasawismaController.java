@@ -37,6 +37,7 @@ public class KelompokDasawismaController {
   private final MasterRwService rwService;
   private final MasterRtService rtService;
   private final PetugasService petugasService;
+  private final BangunanService bangunanService;
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
   @PostMapping
@@ -55,8 +56,29 @@ public class KelompokDasawismaController {
     } else {
       kelompokDasawisma.setPetugasKelompok(null);
     }
+    if (kelompokDasawisma.getTargetBangunanKelompok() != null && kelompokDasawisma.getTargetBangunanKelompok() <= 20) {
+      generateBangunan(kelompokDasawisma.getId(), kelompokDasawisma.getTargetBangunanKelompok());
+    }
     KelompokDasawisma kelompokDasawismaSave = kelompokDasawismaService.saveOrUpdate(kelompokDasawisma);
     return new ResponseEntity<>(kelompokDasawismaSave, HttpStatus.CREATED);
+  }
+
+  private void generateBangunan(long idKelompok, int targetBangunan) {
+    int jmlBangunanExist = 0;
+    if (kelompokDasawismaService.countBangunanByIdKelompok(idKelompok) != null) {
+      jmlBangunanExist = kelompokDasawismaService.countBangunanByIdKelompok(idKelompok);
+    }
+    if (targetBangunan > 0) {
+      if (targetBangunan > jmlBangunanExist) {
+        for (int i = 0; i < (targetBangunan - jmlBangunanExist); i++) {
+          Bangunan bangunan = new Bangunan();
+          KelompokDasawisma kelompokDasawisma = kelompokDasawismaService.findById(idKelompok);
+          bangunan.setKelompokBangunan(kelompokDasawisma);
+          bangunan.setNoUrut(bangunanService.getLastNoUrutByIdKelompok(idKelompok) + 1);
+          bangunanService.saveOrUpdate(bangunan);
+        }
+      }
+    }
   }
 
   @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
@@ -281,11 +303,17 @@ public class KelompokDasawismaController {
       if (kel.getPetugasKelompok() == null) {
         map.put("text", kel.getNamaKelompok());
       } else {
-        map.put("text", kel.getNamaKelompok() + " -> " + kel.getPetugasKelompok().getNama());
+        map.put("text", kel.getNamaKelompok() + " : " + kel.getPetugasKelompok().getNama());
       }
       response.add(map);
     });
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
+  @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+  @GetMapping("/jmlBangunan/{idKelompok}")
+  public ResponseEntity<?> getJumlahBangunanByIdKelompok(@PathVariable Long idKelompok) {
+    Integer jml = kelompokDasawismaService.countBangunanByIdKelompok(idKelompok);
+    return new ResponseEntity<>(jml, HttpStatus.OK);
+  }
 }

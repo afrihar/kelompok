@@ -2,6 +2,7 @@ package id.dasawisma.kelompok.service;
 
 import id.dasawisma.kelompok.exception.ApiRequestException;
 import id.dasawisma.kelompok.model.KelompokDasawisma;
+import id.dasawisma.kelompok.repository.BangunanRepository;
 import id.dasawisma.kelompok.repository.KelompokDasawismaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KelompokDasawismaService {
   private final KelompokDasawismaRepository kelompokDasawismaRepository;
+  private final BangunanRepository bangunanRepository;
 
   public Page<KelompokDasawisma> findAll(Specification<KelompokDasawisma> kelompokDasawismaSpecification, Pageable paging) {
     return kelompokDasawismaRepository.findAll(kelompokDasawismaSpecification, paging);
@@ -52,6 +54,10 @@ public class KelompokDasawismaService {
 
   public Integer countAllByRtKelompok(String kodeRt) {
     return kelompokDasawismaRepository.countAllByRtKelompok_KodeRt(kodeRt);
+  }
+
+  public Integer countBangunanByIdKelompok(Long idKelompok) {
+    return bangunanRepository.countAllByKelompokBangunan_Id(idKelompok);
   }
 
   public String getKelompokNextNumber(String kodeRt) {

@@ -62,6 +62,10 @@ public class WebSecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
         .antMatchers("/api/rt", "/api/rt/**").hasAnyRole(PUSDATIN, PROVINSI, KOTA, KECAMATAN, KELURAHAN, RW)
         .antMatchers("/api/petugas", "/api/petugas/**").hasAnyRole(PUSDATIN, PROVINSI, KOTA, KECAMATAN, KELURAHAN, RW, RT)
         .antMatchers("/api/kelompok", "/api/kelompok/**").hasAnyRole(PUSDATIN, PROVINSI, KOTA, KECAMATAN, KELURAHAN, RW, RT, KADER)
+        .antMatchers("/api/bangunan", "/api/bangunan/**").hasAnyRole(PUSDATIN, KELURAHAN, KADER)
+        .antMatchers("/api/rumahtangga", "/api/rumahtangga/**").hasAnyRole(PUSDATIN, KELURAHAN, KADER)
+        .antMatchers("/api/keluarga", "/api/keluarga/**").hasAnyRole(PUSDATIN, KELURAHAN, KADER)
+        .antMatchers("/api/individu", "/api/individu/**").hasAnyRole(PUSDATIN, KELURAHAN, KADER)
         .antMatchers("/api/options", "/api/options/**").hasAnyRole(PUSDATIN, PROVINSI, KOTA, KECAMATAN, KELURAHAN, RW, RT, KADER)
         .anyRequest().authenticated();
     http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);

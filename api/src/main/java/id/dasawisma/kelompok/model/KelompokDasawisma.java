@@ -24,6 +24,8 @@ public class KelompokDasawisma {
   @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
   @JoinColumn(name = "nik_petugas", referencedColumnName = "nik")
   private Petugas petugasKelompok;
+  @Column(name = "target_bangunan")
+  private Integer targetBangunanKelompok;
   @Embedded
   @JsonIgnore
   private AuditMaster auditMaster = new AuditMaster();
