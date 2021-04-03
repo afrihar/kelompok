@@ -50,7 +50,8 @@ public class WebSecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     super.configure(http);
-    http.authorizeRequests()
+    http.csrf().disable()
+        .authorizeRequests()
         .antMatchers(HttpMethod.GET, "/actuator/**").permitAll()
         .antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
         .antMatchers("/api/userextras/me").authenticated()
@@ -69,7 +70,7 @@ public class WebSecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
         .antMatchers("/api/options", "/api/options/**").hasAnyRole(PUSDATIN, PROVINSI, KOTA, KECAMATAN, KELURAHAN, RW, RT, KADER)
         .anyRequest().authenticated();
     http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-    http.cors().and().csrf().disable();
+    http.cors();
   }
 
   @Bean

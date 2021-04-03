@@ -82,7 +82,7 @@ function App() {
   return (
     <ReactKeycloakProvider authClient={keycloak} onEvent={(event, error) => handleOnEvent(event, error)}
                            initOptions={initOptions} LoadingComponent={loadingComponent}>
-      <Router>
+      <Router basename="/kelompok">
         <NavBar/>
         <Switch>
           <Route path="/" exact component={Home}/>

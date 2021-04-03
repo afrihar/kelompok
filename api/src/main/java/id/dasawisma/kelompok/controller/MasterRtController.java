@@ -28,6 +28,7 @@ import java.util.Map;
 import static id.dasawisma.kelompok.config.SwaggerConfig.BEARER_KEY_SECURITY_SCHEME;
 
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/rt")
 public class MasterRtController {

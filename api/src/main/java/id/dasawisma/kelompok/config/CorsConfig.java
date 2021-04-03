@@ -10,12 +10,12 @@ import org.springframework.web.filter.CorsFilter;
 import java.util.Collections;
 import java.util.List;
 
-@Configuration
+//@Configuration
 public class CorsConfig {
   @Value("${kelompok.allowed-origins}")
   private List<String> ALLOWED_ORIGINS;
 
-  @Bean
+//  @Bean
   CorsFilter corsFilter() {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     CorsConfiguration config = new CorsConfiguration();
